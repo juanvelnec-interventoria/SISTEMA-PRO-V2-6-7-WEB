@@ -562,10 +562,12 @@ if __name__=="__main__":
     print("SISTEMA PRO V2.6 - TABLERO EJECUTIVO PROFESIONAL")
     print("Excel:",EXCEL_PATH)
     if not os.path.exists(EXCEL_PATH):
-        print("ERROR: no se encontro el Excel.")
-        input("ENTER para cerrar...")
+        print("ADVERTENCIA: no se encontro el Excel en:", EXCEL_PATH)
+        print("El servidor continuara activo; verifica la fuente de datos.")
     else:
-        url=f"http://{HOST}:{PORT}/";print("Tablero:",url);print("Actualizacion:",REFRESH_SECONDS,"segundos")
-        if not RENDER_MODE:
-            threading.Timer(1.0,lambda:webbrowser.open(url)).start()
-        ThreadingHTTPServer((HOST,PORT),Handler).serve_forever()
+        print("Excel encontrado:", EXCEL_PATH)
+    url=f"http://{HOST}:{PORT}/"
+    print("Tablero:",url);print("Actualizacion:",REFRESH_SECONDS,"segundos")
+    if not RENDER_MODE:
+        threading.Timer(1.0,lambda:webbrowser.open(url)).start()
+    ThreadingHTTPServer((HOST,PORT),Handler).serve_forever()
