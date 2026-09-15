@@ -11,7 +11,7 @@ import pandas as pd
 # Configuración dual: mantiene el funcionamiento local original y permite publicar
 # la misma aplicación en Render sin cambiar el tablero.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-RENDER_MODE = os.environ.get("RENDER", "0") == "1"
+RENDER_MODE = os.environ.get("RENDER", "false").strip().lower() in ("1", "true", "yes", "on")
 if RENDER_MODE:
     EXCEL_PATH = os.environ.get("EXCEL_PATH", os.path.join(BASE_DIR, "BASE_RECORRIDOS_PRO_JCA.xlsx"))
     DIURNO_ROOT = os.environ.get("DIURNO_ROOT", os.path.join(BASE_DIR, "Recorrido_Diurno"))
