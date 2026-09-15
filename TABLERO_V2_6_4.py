@@ -177,12 +177,28 @@ def sync_drive_kml(force=False):
     ok2=sync_drive_kml_month(month,"NOCTURNO",force=force)
     return ok1 or ok2
 
+def preload_current_kml_cache():
+    """Preprocesa en segundo plano los KML del mes actual ya descargados.
+    Así la primera consulta del mapa no tiene que volver a convertir el KML a GeoJSON."""
+    if not RENDER_MODE:
+        return
+    month=time.strftime("%Y-%m")
+    for turno in ("DIURNO","NOCTURNO"):
+        try:
+            for p in kml_candidates(month,turno):
+                if os.path.exists(p):
+                    read_kml_geojson(p)
+                    print(f"[DRIVE KML] caché GeoJSON lista: {turno} {month}")
+                    break
+        except Exception as exc:
+            print(f"[DRIVE KML] no se pudo precargar {turno}:", str(exc)[:180])
+
 def drive_kml_loop():
     while True:
         try:
-            # Mantiene el mes actual actualizado. Los meses históricos se descargan
-            # bajo demanda cuando el jefe selecciona ese AÑO-MES en el tablero.
+            # Mantiene el mes actual descargado y precarga su representación GeoJSON.
             sync_drive_kml()
+            preload_current_kml_cache()
         except Exception as exc:
             print("[DRIVE KML] error de sincronización:", str(exc)[:180])
         time.sleep(max(30, DRIVE_KML_SYNC_SECONDS))
@@ -231,12 +247,23 @@ def _coords_to_points(raw):
             except: pass
     return pts
 
+_KML_GEO_CACHE = {}
+_KML_GEO_CACHE_LOCK = threading.Lock()
+
 def read_kml_geojson(path):
-    """Lee KML/KMZ y devuelve GeoJSON. Incluye respaldo para KML grandes,
-    LineString, MultiGeometry y gx:Track/gx:coord."""
+    """Lee KML/KMZ y devuelve GeoJSON. Usa caché en memoria por archivo+fecha
+    para que el mismo mes no tenga que volver a procesarse al cambiar de pestaña.
+    Incluye respaldo para KML grandes, LineString, MultiGeometry y gx:Track/gx:coord."""
     if not path or not os.path.exists(path):
         return {"type":"FeatureCollection","features":[],"file":path,"exists":False}
     try:
+        mtime=os.path.getmtime(path)
+        size=os.path.getsize(path)
+        cache_key=os.path.abspath(path)
+        with _KML_GEO_CACHE_LOCK:
+            cached=_KML_GEO_CACHE.get(cache_key)
+            if cached and cached[0]==mtime and cached[1]==size:
+                return cached[2]
         if path.lower().endswith(".kmz"):
             with zipfile.ZipFile(path) as z:
                 names=[n for n in z.namelist() if n.lower().endswith(".kml")]
@@ -322,8 +349,11 @@ def read_kml_geojson(path):
                 pass
         if not features:
             raise ValueError("El KML existe, pero no se encontraron geometrías reconocibles (LineString, coordinates o gx:Track).")
-        return {"type":"FeatureCollection","features":features,"file":path,"exists":True,
-                "size":os.path.getsize(path),"modified":time.strftime("%d/%m/%Y %H:%M:%S",time.localtime(os.path.getmtime(path)))}
+        result={"type":"FeatureCollection","features":features,"file":path,"exists":True,
+                "size":size,"modified":time.strftime("%d/%m/%Y %H:%M:%S",time.localtime(mtime))}
+        with _KML_GEO_CACHE_LOCK:
+            _KML_GEO_CACHE[cache_key]=(mtime,size,result)
+        return result
     except Exception as e:
         return {"type":"FeatureCollection","features":[],"file":path,"exists":True,"error":str(e),"size":os.path.getsize(path),"modified":time.strftime("%d/%m/%Y %H:%M:%S",time.localtime(os.path.getmtime(path)))}
 
@@ -772,6 +802,7 @@ if __name__=="__main__":
         sync_drive_kml(force=True)
         threading.Thread(target=drive_sync_loop, daemon=True).start()
         threading.Thread(target=drive_kml_loop, daemon=True).start()
+        threading.Thread(target=lambda: (time.sleep(2), preload_current_kml_cache()), daemon=True).start()
     print("Excel:",EXCEL_PATH)
     if not os.path.exists(EXCEL_PATH):
         print("ADVERTENCIA: no se encontro el Excel en:", EXCEL_PATH)
