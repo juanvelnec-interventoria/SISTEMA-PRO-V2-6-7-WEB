@@ -1,0 +1,5 @@
+SISTEMA PRO V2.6.4 – COLORES DE LÍNEAS
+
+Incluye: Autor: Juan Ayala · Derechos reservados
+
+Esta versión mantiene las funcionalidades anteriores y agrega únicamente la identificación de autoría en el pie del tablero.

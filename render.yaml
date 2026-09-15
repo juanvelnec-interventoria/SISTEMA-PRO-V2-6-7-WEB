@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: sistema-pro-v2-6-7
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python TABLERO_V2_6_4.py
+    envVars:
+      - key: RENDER
+        value: "1"
