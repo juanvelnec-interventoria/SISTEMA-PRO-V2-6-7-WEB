@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-import json, os, re, threading, time, webbrowser, zipfile, xml.etree.ElementTree as ET, html as htmlmod
+import json, os, re, threading, time, webbrowser, zipfile, xml.etree.ElementTree as ET, html as htmlmod, tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 import pandas as pd
 
 # ==========================================================
@@ -12,6 +13,11 @@ import pandas as pd
 # la misma aplicación en Render sin cambiar el tablero.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 RENDER_MODE = os.environ.get("RENDER", "false").strip().lower() in ("1", "true", "yes", "on")
+# Fuente remota para Render: el mismo archivo XLSX de Google Drive.
+# El ID permanece estable cuando se sube una nueva versión del mismo archivo.
+DRIVE_EXCEL_ID = os.environ.get("DRIVE_EXCEL_ID", "14CeVb1lJGmh3XzkrQTBTuLORIOk028ze")
+DRIVE_SYNC_SECONDS = int(os.environ.get("DRIVE_SYNC_SECONDS", "30"))
+
 if RENDER_MODE:
     EXCEL_PATH = os.environ.get("EXCEL_PATH", os.path.join(BASE_DIR, "BASE_RECORRIDOS_PRO_JCA.xlsx"))
     DIURNO_ROOT = os.environ.get("DIURNO_ROOT", os.path.join(BASE_DIR, "Recorrido_Diurno"))
@@ -491,7 +497,53 @@ async function load(){try{let r=await fetch('/api/data?x='+Date.now()),j=await r
 </body></html>
 """
 
+def sync_drive_excel(force=False):
+    """Descarga la versión actual del XLSX público de Google Drive.
+    Mantiene la última copia válida si Drive no responde.
+    """
+    if not RENDER_MODE or not DRIVE_EXCEL_ID:
+        return False
+    now=time.time()
+    last=getattr(sync_drive_excel, "last", 0.0)
+    if not force and now-last < DRIVE_SYNC_SECONDS:
+        return False
+    sync_drive_excel.last=now
+    urls=[
+        f"https://drive.google.com/uc?export=download&id={DRIVE_EXCEL_ID}",
+        f"https://drive.usercontent.google.com/download?id={DRIVE_EXCEL_ID}&export=download&confirm=t",
+    ]
+    for url in urls:
+        tmp=None
+        try:
+            req=Request(url, headers={"User-Agent":"Mozilla/5.0"})
+            with urlopen(req, timeout=45) as r:
+                data=r.read()
+            # XLSX es un ZIP y comienza por PK. Si Drive devuelve una página HTML
+            # de permisos/confirmación, no sustituimos la copia válida existente.
+            if not data.startswith(b"PK"):
+                continue
+            fd,tmp=tempfile.mkstemp(prefix="spro_drive_", suffix=".xlsx", dir=BASE_DIR)
+            with os.fdopen(fd,"wb") as f:f.write(data)
+            os.replace(tmp, EXCEL_PATH)
+            print(f"[DRIVE] Excel actualizado: {time.strftime('%d/%m/%Y %H:%M:%S')} ({len(data)/1024:.1f} KB)")
+            return True
+        except Exception as exc:
+            print("[DRIVE] intento fallido:", str(exc)[:160])
+        finally:
+            if tmp and os.path.exists(tmp):
+                try: os.remove(tmp)
+                except: pass
+    return False
+
+def drive_sync_loop():
+    while True:
+        try: sync_drive_excel()
+        except Exception as exc: print("[DRIVE] error de sincronización:", str(exc)[:160])
+        time.sleep(max(10, DRIVE_SYNC_SECONDS))
+
 def read_excel():
+    if RENDER_MODE:
+        sync_drive_excel()
     if not os.path.exists(EXCEL_PATH):
         raise FileNotFoundError(EXCEL_PATH)
     try:
@@ -560,6 +612,10 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__=="__main__":
     print("SISTEMA PRO V2.6 - TABLERO EJECUTIVO PROFESIONAL")
+    if RENDER_MODE:
+        print("Google Drive Excel ID:", DRIVE_EXCEL_ID)
+        sync_drive_excel(force=True)
+        threading.Thread(target=drive_sync_loop, daemon=True).start()
     print("Excel:",EXCEL_PATH)
     if not os.path.exists(EXCEL_PATH):
         print("ADVERTENCIA: no se encontro el Excel en:", EXCEL_PATH)
