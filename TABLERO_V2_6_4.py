@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import json, os, re, threading, time, webbrowser, zipfile, xml.etree.ElementTree as ET, html as htmlmod, tempfile
+import json, os, re, threading, time, webbrowser, zipfile, xml.etree.ElementTree as ET, html as htmlmod, tempfile, traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -26,6 +26,8 @@ DRIVE_KML_DIR = os.path.join(BASE_DIR, "DriveKML")
 DRIVE_KML_INDEX_SECONDS = int(os.environ.get("DRIVE_KML_INDEX_SECONDS", "300"))
 # Respaldo de los dos archivos que ya conocemos; el descubrimiento por carpeta
 # será la vía principal para meses nuevos e históricos.
+EXCEL_FILE_LOCK = threading.Lock()
+
 DRIVE_KML_FALLBACK_IDS = {
     ("DIURNO", "2026-09"): "1HN2HK5Olmx9PHYhTXNVhumZ2Rrj50j3y",
     ("NOCTURNO", "2026-09"): "1ndjZZaxKHrZWZVgBi-fWRqdeuLPUGhyu",
@@ -131,6 +133,33 @@ def _drive_folder_files(folder_id):
         print("[DRIVE KML] no se pudo leer carpeta:", str(exc)[:180])
         return cached[1] if cached else {}
 
+def available_kml_months():
+    """Devuelve los meses detectados en las carpetas públicas de KML.
+    Se combina con los meses del Excel para que el selector histórico no dependa
+    de que exista una fila en RECORRIDOS.
+    """
+    months=set()
+    patterns=(
+        (DRIVE_DIURNO_FOLDER_ID, r"^REC_DIUR_(?:[A-Z]{3})(\d{4})\.(?:kml|kmz)$"),
+        (DRIVE_NOCTURNO_FOLDER_ID, r"^REC_NOCT_(?:[A-Z]{3})(\d{4})\.(?:kml|kmz)$"),
+    )
+    for folder_id,pat in patterns:
+        files=_drive_folder_files(folder_id)
+        for name in files:
+            m=re.match(pat,name,re.I)
+            if not m:
+                continue
+            mm=re.search(r"_([A-Z]{3})(\d{4})\.",name,re.I)
+            if not mm:
+                continue
+            abbr=mm.group(1).upper(); year=mm.group(2)
+            rev={v:k for k,v in MONTH_ABBR.items()}
+            month=rev.get(abbr)
+            if month:
+                months.add(f"{year}-{int(month):02d}")
+    return sorted(months)
+
+
 def _drive_kml_file_id(year_month, turno):
     folder=month_folder(year_month)
     if not folder:
@@ -177,12 +206,28 @@ def sync_drive_kml(force=False):
     ok2=sync_drive_kml_month(month,"NOCTURNO",force=force)
     return ok1 or ok2
 
+def preload_current_kml_cache():
+    """Preprocesa en segundo plano los KML del mes actual ya descargados.
+    Así la primera consulta del mapa no tiene que volver a convertir el KML a GeoJSON."""
+    if not RENDER_MODE:
+        return
+    month=time.strftime("%Y-%m")
+    for turno in ("DIURNO","NOCTURNO"):
+        try:
+            for p in kml_candidates(month,turno):
+                if os.path.exists(p):
+                    read_kml_geojson(p)
+                    print(f"[DRIVE KML] caché GeoJSON lista: {turno} {month}")
+                    break
+        except Exception as exc:
+            print(f"[DRIVE KML] no se pudo precargar {turno}:", str(exc)[:180])
+
 def drive_kml_loop():
     while True:
         try:
-            # Mantiene el mes actual actualizado. Los meses históricos se descargan
-            # bajo demanda cuando el jefe selecciona ese AÑO-MES en el tablero.
+            # Mantiene el mes actual descargado y precarga su representación GeoJSON.
             sync_drive_kml()
+            preload_current_kml_cache()
         except Exception as exc:
             print("[DRIVE KML] error de sincronización:", str(exc)[:180])
         time.sleep(max(30, DRIVE_KML_SYNC_SECONDS))
@@ -231,12 +276,23 @@ def _coords_to_points(raw):
             except: pass
     return pts
 
+_KML_GEO_CACHE = {}
+_KML_GEO_CACHE_LOCK = threading.Lock()
+
 def read_kml_geojson(path):
-    """Lee KML/KMZ y devuelve GeoJSON. Incluye respaldo para KML grandes,
-    LineString, MultiGeometry y gx:Track/gx:coord."""
+    """Lee KML/KMZ y devuelve GeoJSON. Usa caché en memoria por archivo+fecha
+    para que el mismo mes no tenga que volver a procesarse al cambiar de pestaña.
+    Incluye respaldo para KML grandes, LineString, MultiGeometry y gx:Track/gx:coord."""
     if not path or not os.path.exists(path):
         return {"type":"FeatureCollection","features":[],"file":path,"exists":False}
     try:
+        mtime=os.path.getmtime(path)
+        size=os.path.getsize(path)
+        cache_key=os.path.abspath(path)
+        with _KML_GEO_CACHE_LOCK:
+            cached=_KML_GEO_CACHE.get(cache_key)
+            if cached and cached[0]==mtime and cached[1]==size:
+                return cached[2]
         if path.lower().endswith(".kmz"):
             with zipfile.ZipFile(path) as z:
                 names=[n for n in z.namelist() if n.lower().endswith(".kml")]
@@ -322,8 +378,11 @@ def read_kml_geojson(path):
                 pass
         if not features:
             raise ValueError("El KML existe, pero no se encontraron geometrías reconocibles (LineString, coordinates o gx:Track).")
-        return {"type":"FeatureCollection","features":features,"file":path,"exists":True,
-                "size":os.path.getsize(path),"modified":time.strftime("%d/%m/%Y %H:%M:%S",time.localtime(os.path.getmtime(path)))}
+        result={"type":"FeatureCollection","features":features,"file":path,"exists":True,
+                "size":size,"modified":time.strftime("%d/%m/%Y %H:%M:%S",time.localtime(mtime))}
+        with _KML_GEO_CACHE_LOCK:
+            _KML_GEO_CACHE[cache_key]=(mtime,size,result)
+        return result
     except Exception as e:
         return {"type":"FeatureCollection","features":[],"file":path,"exists":True,"error":str(e),"size":os.path.getsize(path),"modified":time.strftime("%d/%m/%Y %H:%M:%S",time.localtime(os.path.getmtime(path)))}
 
@@ -512,7 +571,7 @@ function pct(a,b){return b?((100*a/b).toFixed(1)+'%'):'N/D'}
 function secFmt(s){s=Math.max(0,Math.round(s||0));let h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60);s%=60;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
 function fmt(n){return (+n||0).toLocaleString('es-CO',{maximumFractionDigits:1})}
 function filt(){let m=$('month').value,s=$('shift').value,t=$('tech').value,a=$('d1').value,b=$('d2').value,si=$('si').value,sf=$('sf').value;return DATA.filter(r=>(m==='Todos'||String(r['Año-Mes'])===m)&&(s==='Todos'||String(r.Turno)===s)&&(t==='Todos'||String(r['Técnico'])===t)&&(!a||r.Fecha>=a)&&(!b||r.Fecha<=b)&&(si==='Todos'||r['Estado inicio']===si)&&(sf==='Todos'||r['Estado fin']===sf))}
-function setupFilters(){let ms=[...new Set(DATA.map(r=>r['Año-Mes']).filter(Boolean))].sort(),ts=[...new Set(DATA.map(r=>r['Técnico']).filter(Boolean))].sort();$('month').innerHTML='<option>Todos</option>'+ms.map(x=>`<option>${esc(x)}</option>`).join('');$('tech').innerHTML='<option>Todos</option>'+ts.map(x=>`<option>${esc(x)}</option>`).join('');['month','shift','tech','d1','d2','si','sf'].forEach(x=>$(x).onchange=render)}
+function setupFilters(kmlMonths=[]){let ms=[...new Set(DATA.map(r=>r['Año-Mes']).filter(Boolean).concat(kmlMonths||[]))].filter(x=>/^\d{4}-\d{2}$/.test(String(x))).sort(),ts=[...new Set(DATA.map(r=>r['Técnico']).filter(Boolean))].sort();$('month').innerHTML='<option>Todos</option>'+ms.map(x=>`<option>${esc(x)}</option>`).join('');$('tech').innerHTML='<option>Todos</option>'+ts.map(x=>`<option>${esc(x)}</option>`).join('');['month','shift','tech','d1','d2','si','sf'].forEach(x=>$(x).onchange=render)}
 function svgBox(id){$(id).innerHTML=''}
 function bars(id,labels,series,names,max){let el=$(id);if(!el)return;let w=Math.max(el.clientWidth||0,760),h=Math.max(el.clientHeight||0,340),l=55,r=18,t=22,b=72,ph=h-t-b,n=labels.length,g=(w-l-r)/Math.max(1,n),bw=Math.min(28,g*.62/Math.max(1,series.length));let M=max||Math.max(1,...series.flat())*1.15;let s=`<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><g font-family="Segoe UI" font-size="9" fill="#68747e">`;for(let q=0;q<=4;q++){let y=t+ph-q/4*ph;let val=M*q/4;s+=`<line x1="${l}" y1="${y}" x2="${w-r}" y2="${y}" stroke="#e8edf1"/><text x="${l-7}" y="${y+3}" text-anchor="end">${Number(val).toFixed(val%1?1:0)}${max===100?'%':''}</text>`}series.forEach((arr,j)=>arr.forEach((v,i)=>{let x=l+i*g+g*.18+j*bw,y=t+ph-(v/M)*ph,hh=t+ph-y;s+=`<rect x="${x}" y="${y}" width="${Math.max(2,bw-2)}" height="${Math.max(0,hh)}" rx="2" fill="${j?'#f08b25':'#1688e8'}"/><title>${esc(String(labels[i]))}: ${Number(v).toFixed(v%1?1:0)}${max===100?'%':''}</title><text x="${x+(bw-2)/2}" y="${Math.max(12,y-5)}" text-anchor="middle" fill="#334450" font-weight="700">${Number(v).toFixed(v%1?1:0)}${max===100?'%':''}</text>`}));labels.forEach((x,i)=>{let xx=l+i*g+g/2;s+=`<text x="${xx}" y="${h-b+16}" text-anchor="middle" transform="rotate(-28 ${xx} ${h-b+16})">${esc(String(x).slice(0,18))}</text>`});s+='</g></svg>';el.innerHTML=s}
 function hbars(id,labels,vals,color='#1688e8'){let el=$(id);if(!el)return;let w=Math.max(el.clientWidth||0,700),h=Math.max(el.clientHeight||0,340),l=155,r=55,t=12,b=15,row=Math.max(24,(h-t-b)/Math.max(1,labels.length)),M=Math.max(1,...vals)*1.12;let s=`<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><g font-family="Segoe UI" font-size="9">`;labels.forEach((lab,i)=>{let y=t+i*row+4,bw=(w-l-r)*(vals[i]/M);s+=`<text x="${l-8}" y="${y+10}" text-anchor="end" fill="#68747e">${esc(String(lab).slice(0,24))}</text><rect x="${l}" y="${y}" width="${Math.max(2,bw)}" height="15" rx="3" fill="${color}"/><text x="${Math.min(w-r+2,l+bw+6)}" y="${y+11}" fill="#334450" font-weight="700">${Number(vals[i]).toFixed(vals[i]%1?1:0)}</text>`});s+='</g></svg>';el.innerHTML=s}
@@ -644,7 +703,7 @@ let gt={};d.forEach(r=>{let t=r['Técnico']||'Sin técnico';gt[t]=(gt[t]||0)+(+r
 if(map1)changeSummaryRoute();if(map2)updateMap(map2,d,layers2);$('kmld3').textContent=d.length;if(document.getElementById('mapa')?.classList.contains('active'))refreshMonthlyMap();
 }
 function clock(){let d=new Date();$('date').textContent=d.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});$('time').textContent=d.toLocaleTimeString('es-CO',{hour12:false})}
-async function load(){try{let r=await fetch('/api/data?x='+Date.now()),j=await r.json();if(j.error)throw Error(j.error);if(j.stamp!==lastStamp){let keep={m:$('month').value,t:$('tech').value,s:$('shift').value,a:$('d1').value,b:$('d2').value,si:$('si').value,sf:$('sf').value};DATA=j.rows;lastStamp=j.stamp;setupFilters();$('month').value=keep.m;$('tech').value=keep.t;$('shift').value=keep.s;$('d1').value=keep.a;$('d2').value=keep.b;$('si').value=keep.si;$('sf').value=keep.sf;render()}$('live').textContent='● Excel conectado · '+j.updated}catch(e){$('live').textContent='● Error leyendo Excel: '+String(e.message||e).slice(0,80)}}clock();setInterval(clock,1000);setInterval(load,5000);setTimeout(()=>{map1=initMap('map1');map2=initMap('map2');mapDiurno=initMap('mapDiurno');mapNocturno=initMap('mapNocturno');setTimeout(()=>{restoreDesign();restoreRouteColors();[map1,map2,mapDiurno,mapNocturno].forEach(m=>{if(m)m.invalidateSize(true)});render()},350)},350);load();
+async function load(){try{let r=await fetch('/api/data?x='+Date.now()),j=await r.json();if(j.error)throw Error(j.error);if(j.stamp!==lastStamp){let keep={m:$('month').value,t:$('tech').value,s:$('shift').value,a:$('d1').value,b:$('d2').value,si:$('si').value,sf:$('sf').value};DATA=j.rows;lastStamp=j.stamp;setupFilters(j.kml_months||[]);$('month').value=keep.m;$('tech').value=keep.t;$('shift').value=keep.s;$('d1').value=keep.a;$('d2').value=keep.b;$('si').value=keep.si;$('sf').value=keep.sf;render()}$('live').textContent='● Excel conectado · '+j.updated}catch(e){$('live').textContent='● Error leyendo Excel: '+String(e.message||e).slice(0,80)}}clock();setInterval(clock,1000);setInterval(load,5000);setTimeout(()=>{map1=initMap('map1');map2=initMap('map2');mapDiurno=initMap('mapDiurno');mapNocturno=initMap('mapNocturno');setTimeout(()=>{restoreDesign();restoreRouteColors();[map1,map2,mapDiurno,mapNocturno].forEach(m=>{if(m)m.invalidateSize(true)});render()},350)},350);load();
 </script>
 </body></html>
 """
@@ -676,7 +735,18 @@ def sync_drive_excel(force=False):
                 continue
             fd,tmp=tempfile.mkstemp(prefix="spro_drive_", suffix=".xlsx", dir=BASE_DIR)
             with os.fdopen(fd,"wb") as f:f.write(data)
-            os.replace(tmp, EXCEL_PATH)
+            # Validar el XLSX antes de reemplazar la copia activa.
+            # Esto evita que una descarga incompleta o un archivo distinto deje
+            # al endpoint /api/data sin una fuente válida.
+            from openpyxl import load_workbook
+            wb=load_workbook(tmp,data_only=True,read_only=True)
+            try:
+                if "RECORRIDOS" not in wb.sheetnames:
+                    raise ValueError("El XLSX descargado no contiene la hoja RECORRIDOS")
+            finally:
+                wb.close()
+            with EXCEL_FILE_LOCK:
+                os.replace(tmp, EXCEL_PATH)
             print(f"[DRIVE] Excel actualizado: {time.strftime('%d/%m/%Y %H:%M:%S')} ({len(data)/1024:.1f} KB)")
             return True
         except Exception as exc:
@@ -694,22 +764,32 @@ def drive_sync_loop():
         time.sleep(max(10, DRIVE_SYNC_SECONDS))
 
 def read_excel():
-    if RENDER_MODE:
-        sync_drive_excel()
     if not os.path.exists(EXCEL_PATH):
         raise FileNotFoundError(EXCEL_PATH)
-    try:
-        df=pd.read_excel(EXCEL_PATH,sheet_name="RECORRIDOS")
-    except Exception as exc:
-        # Fallback para casos en que Excel esté abierto/bloqueado por otro proceso.
-        from openpyxl import load_workbook
-        wb=load_workbook(EXCEL_PATH,data_only=True,read_only=True)
-        ws=wb["RECORRIDOS"]
-        rows=list(ws.iter_rows(values_only=True))
-        if not rows: raise exc
-        headers=[str(x).strip() if x is not None else "" for x in rows[0]]
-        df=pd.DataFrame(rows[1:],columns=headers)
-        wb.close()
+    # La sincronización con Drive ocurre en segundo plano. No se descarga Drive
+    # desde cada petición web: así /api/data siempre lee una copia estable.
+    with EXCEL_FILE_LOCK:
+        try:
+            df=pd.read_excel(EXCEL_PATH,sheet_name="RECORRIDOS")
+        except Exception as exc:
+            print("[EXCEL] pandas.read_excel fallo:", repr(exc))
+            # Fallback robusto con openpyxl.
+            from openpyxl import load_workbook
+            try:
+                wb=load_workbook(EXCEL_PATH,data_only=True,read_only=True)
+                try:
+                    if "RECORRIDOS" not in wb.sheetnames:
+                        raise ValueError("La hoja RECORRIDOS no existe en el Excel activo")
+                    ws=wb["RECORRIDOS"]
+                    rows=list(ws.iter_rows(values_only=True))
+                finally:
+                    wb.close()
+                if not rows: raise exc
+                headers=[str(x).strip() if x is not None else "" for x in rows[0]]
+                df=pd.DataFrame(rows[1:],columns=headers)
+            except Exception as exc2:
+                print("[EXCEL] fallback openpyxl fallo:", repr(exc2))
+                raise RuntimeError(f"No se pudo leer RECORRIDOS. pandas={exc!r}; openpyxl={exc2!r}") from exc2
     required=["Fecha","Año-Mes","Técnico","Turno","Inicio Colombia","Fin Colombia","Diferencia inicio","Diferencia fin","Estado inicio","Estado fin","Kilómetros","Velocidad promedio (km/h)","Huecos GPS >=10 min","Estado recorrido","Duración","Archivo"]
     missing=[c for c in required if c not in df.columns]
     if missing: raise ValueError("Faltan columnas en RECORRIDOS: "+", ".join(missing))
@@ -757,10 +837,21 @@ class Handler(BaseHTTPRequestHandler):
             return
         if p=="/api/data":
             try:
-                b=json.dumps({"stamp":stamp(),"updated":time.strftime("%d/%m/%Y %H:%M:%S"),"rows":read_excel()},ensure_ascii=False,default=str).encode("utf-8")
-                self.send_response(200);self.send_header("Content-Type","application/json; charset=utf-8");self.send_header("Cache-Control","no-store");self.end_headers();self.wfile.write(b)
+                rows=read_excel()
+                excel_months=sorted({str(r.get("Año-Mes")) for r in rows if r.get("Año-Mes") and re.match(r"^\d{4}-\d{2}$",str(r.get("Año-Mes")))})
+                kml_months=available_kml_months() if RENDER_MODE else []
+                all_months=sorted(set(excel_months)|set(kml_months))
+                b=json.dumps({"stamp":stamp(),"updated":time.strftime("%d/%m/%Y %H:%M:%S"),"rows":rows,"kml_months":all_months},ensure_ascii=False,default=str).encode("utf-8")
+                self.send_response(200);self.send_header("Content-Type","application/json; charset=utf-8");self.send_header("Cache-Control","no-store");self.send_header("Content-Length",str(len(b)));self.end_headers();self.wfile.write(b)
             except Exception as e:
-                b=json.dumps({"error":str(e)},ensure_ascii=False).encode("utf-8");self.send_response(500);self.send_header("Content-Type","application/json; charset=utf-8");self.end_headers();self.wfile.write(b)
+                print("[API /api/data] ERROR:", repr(e))
+                traceback.print_exc()
+                b=json.dumps({"error":str(e)},ensure_ascii=False).encode("utf-8")
+                try:
+                    self.send_response(500);self.send_header("Content-Type","application/json; charset=utf-8");self.send_header("Content-Length",str(len(b)));self.end_headers();self.wfile.write(b)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+            return
 
 if __name__=="__main__":
     print("SISTEMA PRO V2.6 - TABLERO EJECUTIVO PROFESIONAL")
@@ -772,6 +863,7 @@ if __name__=="__main__":
         sync_drive_kml(force=True)
         threading.Thread(target=drive_sync_loop, daemon=True).start()
         threading.Thread(target=drive_kml_loop, daemon=True).start()
+        threading.Thread(target=lambda: (time.sleep(2), preload_current_kml_cache()), daemon=True).start()
     print("Excel:",EXCEL_PATH)
     if not os.path.exists(EXCEL_PATH):
         print("ADVERTENCIA: no se encontro el Excel en:", EXCEL_PATH)
