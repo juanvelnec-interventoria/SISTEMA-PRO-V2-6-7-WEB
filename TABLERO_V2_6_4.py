@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-import json, os, re, threading, time, webbrowser, zipfile, xml.etree.ElementTree as ET, html as htmlmod, tempfile, traceback
+import json, os, re, threading, time, webbrowser, zipfile, xml.etree.ElementTree as ET, html as htmlmod
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
 import pandas as pd
 
 # ==========================================================
@@ -13,35 +12,19 @@ import pandas as pd
 # la misma aplicación en Render sin cambiar el tablero.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 RENDER_MODE = os.environ.get("RENDER", "false").strip().lower() in ("1", "true", "yes", "on")
-# Fuente remota para Render: el mismo archivo XLSX de Google Drive.
-# El ID permanece estable cuando se sube una nueva versión del mismo archivo.
-DRIVE_EXCEL_ID = os.environ.get("DRIVE_EXCEL_ID", "14CeVb1lJGmh3XzkrQTBTuLORIOk028ze")
-DRIVE_SYNC_SECONDS = int(os.environ.get("DRIVE_SYNC_SECONDS", "30"))
-# KML históricos: el tablero consulta las carpetas públicas de Google Drive
-# y localiza automáticamente el archivo del mes seleccionado por su nombre.
-DRIVE_DIURNO_FOLDER_ID = os.environ.get("DRIVE_DIURNO_FOLDER_ID", "1DcsyWGZ_VI_4pNxNi6nJ7f7o8LymXpRp")
-DRIVE_NOCTURNO_FOLDER_ID = os.environ.get("DRIVE_NOCTURNO_FOLDER_ID", "19iK5Fy3vgQwjmBwj74upPUwMjQyg0rDe")
-DRIVE_KML_SYNC_SECONDS = int(os.environ.get("DRIVE_KML_SYNC_SECONDS", "60"))
-DRIVE_KML_DIR = os.path.join(BASE_DIR, "DriveKML")
-DRIVE_KML_INDEX_SECONDS = int(os.environ.get("DRIVE_KML_INDEX_SECONDS", "300"))
-# Respaldo de los dos archivos que ya conocemos; el descubrimiento por carpeta
-# será la vía principal para meses nuevos e históricos.
-EXCEL_FILE_LOCK = threading.Lock()
-
-DRIVE_KML_FALLBACK_IDS = {
-    ("DIURNO", "2026-09"): "1HN2HK5Olmx9PHYhTXNVhumZ2Rrj50j3y",
-    ("NOCTURNO", "2026-09"): "1ndjZZaxKHrZWZVgBi-fWRqdeuLPUGhyu",
-}
-
-
+# Fuente de datos: archivos incluidos en el proyecto.
+# En Render se usan las copias versionadas en GitHub; localmente se
+# conservan las rutas de trabajo del PC.
 if RENDER_MODE:
-    EXCEL_PATH = os.environ.get("EXCEL_PATH", os.path.join(BASE_DIR, "BASE_RECORRIDOS_PRO_JCA.xlsx"))
-    DIURNO_ROOT = os.environ.get("DIURNO_ROOT", os.path.join(BASE_DIR, "Recorrido_Diurno"))
-    NOCTURNO_ROOT = os.environ.get("NOCTURNO_ROOT", os.path.join(BASE_DIR, "Recorrido_Nocturno"))
+    EXCEL_PATH = os.path.join(BASE_DIR, "BASE_RECORRIDOS_PRO_JCA.xlsx")
+    DIURNO_ROOT = os.path.join(BASE_DIR, "KML", "REC_DIURNO")
+    NOCTURNO_ROOT = os.path.join(BASE_DIR, "KML", "REC_NOCTURNO")
 else:
     EXCEL_PATH = os.environ.get("EXCEL_PATH", r"C:\Users\USER\Desktop\INTERVENTORIA VELNEC\Recorridos\BASE_RECORRIDOS_PRO_JCA.xlsx")
     DIURNO_ROOT = os.environ.get("DIURNO_ROOT", r"C:\Users\USER\Desktop\INTERVENTORIA VELNEC\Recorridos\Recorrido_Diurno")
     NOCTURNO_ROOT = os.environ.get("NOCTURNO_ROOT", r"C:\Users\USER\Desktop\INTERVENTORIA VELNEC\Recorridos\Recorrido_Nocturno")
+
+# Meses KML incluidos en el repositorio. No se consulta Google Drive.
 
 PORT = int(os.environ.get("PORT", "8765"))
 HOST = os.environ.get("HOST", "0.0.0.0" if RENDER_MODE else "127.0.0.1")
@@ -60,204 +43,42 @@ def month_folder(year_month):
     except Exception:
         return None
 
-def _drive_download(file_id, destination):
-    """Descarga un archivo público de Google Drive conservando la última copia válida."""
-    if not file_id:
-        return False
-    os.makedirs(os.path.dirname(destination), exist_ok=True)
-    urls=[
-        f"https://drive.google.com/uc?export=download&id={file_id}",
-        f"https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t",
-    ]
-    for url in urls:
-        tmp=None
-        try:
-            req=Request(url, headers={"User-Agent":"Mozilla/5.0"})
-            with urlopen(req, timeout=60) as r:
-                data=r.read()
-            # KML XML empieza normalmente por <, KMZ es ZIP (PK).
-            probe=data[:2048].lstrip()
-            if not (probe.startswith(b"<") or data.startswith(b"PK")):
-                continue
-            fd,tmp=tempfile.mkstemp(prefix="spro_kml_", suffix=".tmp", dir=DRIVE_KML_DIR)
-            with os.fdopen(fd,"wb") as f:f.write(data)
-            os.replace(tmp, destination)
-            print(f"[DRIVE KML] actualizado: {destination} ({len(data)/1024/1024:.1f} MB)")
-            return True
-        except Exception as exc:
-            print("[DRIVE KML] intento fallido:", str(exc)[:180])
-        finally:
-            if tmp and os.path.exists(tmp):
-                try: os.remove(tmp)
-                except: pass
-    return False
-
-def _drive_folder_files(folder_id):
-    """Lee una carpeta pública de Drive y devuelve {nombre: file_id}.
-    No requiere credenciales cuando la carpeta está compartida como
-    'Cualquiera con el enlace'.
-    """
-    if not folder_id:
-        return {}
-    now=time.time()
-    cache=getattr(_drive_folder_files, "cache", {})
-    cached=cache.get(folder_id)
-    if cached and now-cached[0] < DRIVE_KML_INDEX_SECONDS:
-        return cached[1]
-    url=f"https://drive.google.com/drive/folders/{folder_id}?usp=sharing"
-    try:
-        req=Request(url, headers={"User-Agent":"Mozilla/5.0"})
-        with urlopen(req, timeout=45) as r:
-            htmltxt=r.read().decode("utf-8", errors="ignore")
-        htmltxt=htmlmod.unescape(htmltxt)
-        found={}
-        # Drive renderiza los elementos con atributos data-id y data-tooltip.
-        patterns=[
-            r'<[^>]*data-id=["\']([^"\']+)["\'][^>]*data-tooltip=["\']([^"\']+)["\'][^>]*>',
-            r'<[^>]*data-tooltip=["\']([^"\']+)["\'][^>]*data-id=["\']([^"\']+)["\'][^>]*>',
-        ]
-        for pat in patterns:
-            for a,b in re.findall(pat, htmltxt, re.I|re.S):
-                if pat.startswith(r'<[^>]*data-id'):
-                    fid,name=a,b
-                else:
-                    name,fid=a,b
-                name=name.strip()
-                if re.match(r'^REC_(?:DIUR|NOCT)_[A-Z]{3}\d{4}\.(?:kml|kmz)$', name, re.I):
-                    found[name]=fid
-        cache[folder_id]=(now,found)
-        _drive_folder_files.cache=cache
-        print(f"[DRIVE KML] carpeta {folder_id}: {len(found)} KML/KMZ encontrados")
-        return found
-    except Exception as exc:
-        print("[DRIVE KML] no se pudo leer carpeta:", str(exc)[:180])
-        return cached[1] if cached else {}
-
 def available_kml_months():
-    """Devuelve los meses detectados en las carpetas públicas de KML.
-    Se combina con los meses del Excel para que el selector histórico no dependa
-    de que exista una fila en RECORRIDOS.
-    """
     months=set()
-    patterns=(
-        (DRIVE_DIURNO_FOLDER_ID, r"^REC_DIUR_(?:[A-Z]{3})(\d{4})\.(?:kml|kmz)$"),
-        (DRIVE_NOCTURNO_FOLDER_ID, r"^REC_NOCT_(?:[A-Z]{3})(\d{4})\.(?:kml|kmz)$"),
-    )
-    for folder_id,pat in patterns:
-        files=_drive_folder_files(folder_id)
-        for name in files:
-            m=re.match(pat,name,re.I)
-            if not m:
-                continue
-            mm=re.search(r"_([A-Z]{3})(\d{4})\.",name,re.I)
-            if not mm:
-                continue
-            abbr=mm.group(1).upper(); year=mm.group(2)
-            rev={v:k for k,v in MONTH_ABBR.items()}
-            month=rev.get(abbr)
-            if month:
-                months.add(f"{year}-{int(month):02d}")
+    for turno, root in (("DIURNO", DIURNO_ROOT), ("NOCTURNO", NOCTURNO_ROOT)):
+        if not os.path.isdir(root):
+            continue
+        for dirpath, _, files in os.walk(root):
+            for f in files:
+                m=re.match(r"^REC_(?:DIUR|NOCT)_([A-Z]{3})(\d{4})\.(?:kml|kmz)$", f, re.I)
+                if not m: continue
+                abbr=m.group(1).upper(); year=m.group(2)
+                rev={v:k for k,v in MONTH_ABBR.items()}
+                if abbr in rev:
+                    months.add(f"{year}-{rev[abbr]:02d}")
     return sorted(months)
-
-
-def _drive_kml_file_id(year_month, turno):
-    folder=month_folder(year_month)
-    if not folder:
-        return None
-    turno=str(turno).upper()
-    prefix="REC_DIUR" if turno=="DIURNO" else "REC_NOCT" if turno=="NOCTURNO" else None
-    folder_id=DRIVE_DIURNO_FOLDER_ID if turno=="DIURNO" else DRIVE_NOCTURNO_FOLDER_ID if turno=="NOCTURNO" else None
-    if not prefix or not folder_id:
-        return None
-    wanted_kml=f"{prefix}_{folder}.kml"
-    wanted_kmz=f"{prefix}_{folder}.kmz"
-    files=_drive_folder_files(folder_id)
-    for wanted in (wanted_kml,wanted_kmz):
-        for name,fid in files.items():
-            if name.lower()==wanted.lower():
-                return fid
-    return DRIVE_KML_FALLBACK_IDS.get((turno,str(year_month)))
-
-def sync_drive_kml_month(year_month, turno, force=False):
-    """Descarga únicamente el KML/KMZ del mes solicitado y lo deja en caché."""
-    if not RENDER_MODE:
-        return False
-    folder=month_folder(year_month)
-    if not folder:
-        return False
-    turno=str(turno).upper()
-    prefix="REC_DIUR" if turno=="DIURNO" else "REC_NOCT" if turno=="NOCTURNO" else None
-    if not prefix:
-        return False
-    destination=os.path.join(DRIVE_KML_DIR, f"{prefix}_{folder}.kml")
-    if os.path.exists(destination) and not force:
-        return True
-    file_id=_drive_kml_file_id(year_month,turno)
-    if not file_id:
-        return False
-    return _drive_download(file_id,destination)
-
-def sync_drive_kml(force=False):
-    """Sincroniza el KML del mes actual para ambos turnos."""
-    if not RENDER_MODE:
-        return False
-    month=time.strftime("%Y-%m")
-    ok1=sync_drive_kml_month(month,"DIURNO",force=force)
-    ok2=sync_drive_kml_month(month,"NOCTURNO",force=force)
-    return ok1 or ok2
-
-def preload_current_kml_cache():
-    """Preprocesa en segundo plano los KML del mes actual ya descargados.
-    Así la primera consulta del mapa no tiene que volver a convertir el KML a GeoJSON."""
-    if not RENDER_MODE:
-        return
-    month=time.strftime("%Y-%m")
-    for turno in ("DIURNO","NOCTURNO"):
-        try:
-            for p in kml_candidates(month,turno):
-                if os.path.exists(p):
-                    read_kml_geojson(p)
-                    print(f"[DRIVE KML] caché GeoJSON lista: {turno} {month}")
-                    break
-        except Exception as exc:
-            print(f"[DRIVE KML] no se pudo precargar {turno}:", str(exc)[:180])
-
-def drive_kml_loop():
-    while True:
-        try:
-            # Mantiene el mes actual descargado y precarga su representación GeoJSON.
-            sync_drive_kml()
-            preload_current_kml_cache()
-        except Exception as exc:
-            print("[DRIVE KML] error de sincronización:", str(exc)[:180])
-        time.sleep(max(30, DRIVE_KML_SYNC_SECONDS))
 
 def kml_candidates(year_month, turno):
     folder = month_folder(year_month)
     if not folder:
         return []
-    y=str(year_month).split("-")[0]
-    if str(turno).upper()=="DIURNO":
-        root = os.path.join(DIURNO_ROOT, y, folder)
-        names=[f"REC_DIUR_{folder}.kml",f"REC_DIUR_{folder}.kmz"]
-    elif str(turno).upper()=="NOCTURNO":
-        root = os.path.join(NOCTURNO_ROOT, folder)
-        names=[f"REC_NOCT_{folder}.kml",f"REC_NOCT_{folder}.kmz"]
+    if str(turno).upper() == "DIURNO":
+        search_root = DIURNO_ROOT
+        prefix = "REC_DIUR"
+    elif str(turno).upper() == "NOCTURNO":
+        search_root = NOCTURNO_ROOT
+        prefix = "REC_NOCT"
     else:
         return []
-    out=[os.path.join(root,n) for n in names]
-    if RENDER_MODE:
-        prefix="REC_DIUR" if str(turno).upper()=="DIURNO" else "REC_NOCT"
-        drive_path=os.path.join(DRIVE_KML_DIR, f"{prefix}_{folder}.kml")
-        out.insert(0, drive_path)
-    search_root=DIURNO_ROOT if str(turno).upper()=="DIURNO" else NOCTURNO_ROOT
+    names = [f"{prefix}_{folder}.kml", f"{prefix}_{folder}.kmz"]
+    out=[]
     if os.path.isdir(search_root):
-        targets={n.lower() for n in names}
-        for dirpath,_,files in os.walk(search_root):
+        for dirpath, _, files in os.walk(search_root):
             for f in files:
-                if f.lower() in targets:
-                    p=os.path.join(dirpath,f)
-                    if p not in out: out.append(p)
+                if f.lower() in {n.lower() for n in names}:
+                    path=os.path.join(dirpath,f)
+                    if path not in out:
+                        out.append(path)
     return out
 
 def _strip(tag):
@@ -388,11 +209,6 @@ def read_kml_geojson(path):
 
 def monthly_kml(year_month):
     result={"month":year_month,"diurno":[],"nocturno":[]}
-    if RENDER_MODE:
-        # Si el usuario selecciona un mes histórico, se localiza y descarga
-        # automáticamente el KML de ese mes desde la carpeta correspondiente.
-        sync_drive_kml_month(year_month,"DIURNO")
-        sync_drive_kml_month(year_month,"NOCTURNO")
     for turno,key in [("DIURNO","diurno"),("NOCTURNO","nocturno")]:
         for p in kml_candidates(year_month,turno):
             if os.path.exists(p):
@@ -708,88 +524,21 @@ async function load(){try{let r=await fetch('/api/data?x='+Date.now()),j=await r
 </body></html>
 """
 
-def sync_drive_excel(force=False):
-    """Descarga la versión actual del XLSX público de Google Drive.
-    Mantiene la última copia válida si Drive no responde.
-    """
-    if not RENDER_MODE or not DRIVE_EXCEL_ID:
-        return False
-    now=time.time()
-    last=getattr(sync_drive_excel, "last", 0.0)
-    if not force and now-last < DRIVE_SYNC_SECONDS:
-        return False
-    sync_drive_excel.last=now
-    urls=[
-        f"https://drive.google.com/uc?export=download&id={DRIVE_EXCEL_ID}",
-        f"https://drive.usercontent.google.com/download?id={DRIVE_EXCEL_ID}&export=download&confirm=t",
-    ]
-    for url in urls:
-        tmp=None
-        try:
-            req=Request(url, headers={"User-Agent":"Mozilla/5.0"})
-            with urlopen(req, timeout=45) as r:
-                data=r.read()
-            # XLSX es un ZIP y comienza por PK. Si Drive devuelve una página HTML
-            # de permisos/confirmación, no sustituimos la copia válida existente.
-            if not data.startswith(b"PK"):
-                continue
-            fd,tmp=tempfile.mkstemp(prefix="spro_drive_", suffix=".xlsx", dir=BASE_DIR)
-            with os.fdopen(fd,"wb") as f:f.write(data)
-            # Validar el XLSX antes de reemplazar la copia activa.
-            # Esto evita que una descarga incompleta o un archivo distinto deje
-            # al endpoint /api/data sin una fuente válida.
-            from openpyxl import load_workbook
-            wb=load_workbook(tmp,data_only=True,read_only=True)
-            try:
-                if "RECORRIDOS" not in wb.sheetnames:
-                    raise ValueError("El XLSX descargado no contiene la hoja RECORRIDOS")
-            finally:
-                wb.close()
-            with EXCEL_FILE_LOCK:
-                os.replace(tmp, EXCEL_PATH)
-            print(f"[DRIVE] Excel actualizado: {time.strftime('%d/%m/%Y %H:%M:%S')} ({len(data)/1024:.1f} KB)")
-            return True
-        except Exception as exc:
-            print("[DRIVE] intento fallido:", str(exc)[:160])
-        finally:
-            if tmp and os.path.exists(tmp):
-                try: os.remove(tmp)
-                except: pass
-    return False
-
-def drive_sync_loop():
-    while True:
-        try: sync_drive_excel()
-        except Exception as exc: print("[DRIVE] error de sincronización:", str(exc)[:160])
-        time.sleep(max(10, DRIVE_SYNC_SECONDS))
-
 def read_excel():
     if not os.path.exists(EXCEL_PATH):
         raise FileNotFoundError(EXCEL_PATH)
-    # La sincronización con Drive ocurre en segundo plano. No se descarga Drive
-    # desde cada petición web: así /api/data siempre lee una copia estable.
-    with EXCEL_FILE_LOCK:
-        try:
-            df=pd.read_excel(EXCEL_PATH,sheet_name="RECORRIDOS")
-        except Exception as exc:
-            print("[EXCEL] pandas.read_excel fallo:", repr(exc))
-            # Fallback robusto con openpyxl.
-            from openpyxl import load_workbook
-            try:
-                wb=load_workbook(EXCEL_PATH,data_only=True,read_only=True)
-                try:
-                    if "RECORRIDOS" not in wb.sheetnames:
-                        raise ValueError("La hoja RECORRIDOS no existe en el Excel activo")
-                    ws=wb["RECORRIDOS"]
-                    rows=list(ws.iter_rows(values_only=True))
-                finally:
-                    wb.close()
-                if not rows: raise exc
-                headers=[str(x).strip() if x is not None else "" for x in rows[0]]
-                df=pd.DataFrame(rows[1:],columns=headers)
-            except Exception as exc2:
-                print("[EXCEL] fallback openpyxl fallo:", repr(exc2))
-                raise RuntimeError(f"No se pudo leer RECORRIDOS. pandas={exc!r}; openpyxl={exc2!r}") from exc2
+    try:
+        df=pd.read_excel(EXCEL_PATH,sheet_name="RECORRIDOS")
+    except Exception as exc:
+        # Fallback para casos en que Excel esté abierto/bloqueado por otro proceso.
+        from openpyxl import load_workbook
+        wb=load_workbook(EXCEL_PATH,data_only=True,read_only=True)
+        ws=wb["RECORRIDOS"]
+        rows=list(ws.iter_rows(values_only=True))
+        if not rows: raise exc
+        headers=[str(x).strip() if x is not None else "" for x in rows[0]]
+        df=pd.DataFrame(rows[1:],columns=headers)
+        wb.close()
     required=["Fecha","Año-Mes","Técnico","Turno","Inicio Colombia","Fin Colombia","Diferencia inicio","Diferencia fin","Estado inicio","Estado fin","Kilómetros","Velocidad promedio (km/h)","Huecos GPS >=10 min","Estado recorrido","Duración","Archivo"]
     missing=[c for c in required if c not in df.columns]
     if missing: raise ValueError("Faltan columnas en RECORRIDOS: "+", ".join(missing))
@@ -842,28 +591,16 @@ class Handler(BaseHTTPRequestHandler):
                 kml_months=available_kml_months() if RENDER_MODE else []
                 all_months=sorted(set(excel_months)|set(kml_months))
                 b=json.dumps({"stamp":stamp(),"updated":time.strftime("%d/%m/%Y %H:%M:%S"),"rows":rows,"kml_months":all_months},ensure_ascii=False,default=str).encode("utf-8")
-                self.send_response(200);self.send_header("Content-Type","application/json; charset=utf-8");self.send_header("Cache-Control","no-store");self.send_header("Content-Length",str(len(b)));self.end_headers();self.wfile.write(b)
+                self.send_response(200);self.send_header("Content-Type","application/json; charset=utf-8");self.send_header("Cache-Control","no-store");self.end_headers();self.wfile.write(b)
             except Exception as e:
-                print("[API /api/data] ERROR:", repr(e))
-                traceback.print_exc()
-                b=json.dumps({"error":str(e)},ensure_ascii=False).encode("utf-8")
-                try:
-                    self.send_response(500);self.send_header("Content-Type","application/json; charset=utf-8");self.send_header("Content-Length",str(len(b)));self.end_headers();self.wfile.write(b)
-                except (BrokenPipeError, ConnectionResetError):
-                    pass
-            return
+                b=json.dumps({"error":str(e)},ensure_ascii=False).encode("utf-8");self.send_response(500);self.send_header("Content-Type","application/json; charset=utf-8");self.end_headers();self.wfile.write(b)
 
 if __name__=="__main__":
     print("SISTEMA PRO V2.6 - TABLERO EJECUTIVO PROFESIONAL")
     if RENDER_MODE:
-        print("Google Drive Excel ID:", DRIVE_EXCEL_ID)
-        sync_drive_excel(force=True)
-        print("Google Drive carpeta KML diurno:", DRIVE_DIURNO_FOLDER_ID)
-        print("Google Drive carpeta KML nocturno:", DRIVE_NOCTURNO_FOLDER_ID)
-        sync_drive_kml(force=True)
-        threading.Thread(target=drive_sync_loop, daemon=True).start()
-        threading.Thread(target=drive_kml_loop, daemon=True).start()
-        threading.Thread(target=lambda: (time.sleep(2), preload_current_kml_cache()), daemon=True).start()
+        print("Fuente Excel Render:", EXCEL_PATH)
+        print("KML diurno Render:", DIURNO_ROOT)
+        print("KML nocturno Render:", NOCTURNO_ROOT)
     print("Excel:",EXCEL_PATH)
     if not os.path.exists(EXCEL_PATH):
         print("ADVERTENCIA: no se encontro el Excel en:", EXCEL_PATH)
