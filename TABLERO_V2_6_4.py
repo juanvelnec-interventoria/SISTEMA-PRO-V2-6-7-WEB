@@ -33,9 +33,11 @@ DRIVE_KML_FALLBACK_IDS = {
 
 
 if RENDER_MODE:
+    # En Render se trabaja únicamente con los archivos publicados en GitHub.
+    # No se consulta Google Drive.
     EXCEL_PATH = os.environ.get("EXCEL_PATH", os.path.join(BASE_DIR, "BASE_RECORRIDOS_PRO_JCA.xlsx"))
-    DIURNO_ROOT = os.environ.get("DIURNO_ROOT", os.path.join(BASE_DIR, "Recorrido_Diurno"))
-    NOCTURNO_ROOT = os.environ.get("NOCTURNO_ROOT", os.path.join(BASE_DIR, "Recorrido_Nocturno"))
+    DIURNO_ROOT = os.environ.get("DIURNO_ROOT", os.path.join(BASE_DIR, "KML", "REC_DIURNO"))
+    NOCTURNO_ROOT = os.environ.get("NOCTURNO_ROOT", os.path.join(BASE_DIR, "KML", "REC_NOCTURNO"))
 else:
     EXCEL_PATH = os.environ.get("EXCEL_PATH", r"C:\Users\USER\Desktop\INTERVENTORIA VELNEC\Recorridos\BASE_RECORRIDOS_PRO_JCA.xlsx")
     DIURNO_ROOT = os.environ.get("DIURNO_ROOT", r"C:\Users\USER\Desktop\INTERVENTORIA VELNEC\Recorridos\Recorrido_Diurno")
@@ -245,9 +247,11 @@ def kml_candidates(year_month, turno):
         return []
     out=[os.path.join(root,n) for n in names]
     if RENDER_MODE:
+        # Los KML web publicados por el actualizador están en KML/REC_DIURNO
+        # y KML/REC_NOCTURNO dentro del repositorio.
         prefix="REC_DIUR" if str(turno).upper()=="DIURNO" else "REC_NOCT"
-        drive_path=os.path.join(DRIVE_KML_DIR, f"{prefix}_{folder}.kml")
-        out.insert(0, drive_path)
+        repo_path=os.path.join(BASE_DIR, "KML", "REC_DIURNO" if prefix=="REC_DIUR" else "REC_NOCTURNO", f"{prefix}_{folder}.kml")
+        out.insert(0, repo_path)
     search_root=DIURNO_ROOT if str(turno).upper()=="DIURNO" else NOCTURNO_ROOT
     if os.path.isdir(search_root):
         targets={n.lower() for n in names}
@@ -907,8 +911,8 @@ def drive_sync_loop():
         time.sleep(max(10, DRIVE_SYNC_SECONDS))
 
 def read_excel():
-    if RENDER_MODE:
-        sync_drive_excel()
+    # En Render el Excel ya viene publicado junto con el código.
+    # No se intenta descargar ni reemplazar desde Google Drive.
     if not os.path.exists(EXCEL_PATH):
         raise FileNotFoundError(EXCEL_PATH)
     try:
@@ -992,13 +996,8 @@ class Handler(BaseHTTPRequestHandler):
 if __name__=="__main__":
     print("SISTEMA PRO V2.6 - TABLERO EJECUTIVO PROFESIONAL")
     if RENDER_MODE:
-        print("Google Drive Excel ID:", DRIVE_EXCEL_ID)
-        sync_drive_excel(force=True)
-        print("Google Drive carpeta KML diurno:", DRIVE_DIURNO_FOLDER_ID)
-        print("Google Drive carpeta KML nocturno:", DRIVE_NOCTURNO_FOLDER_ID)
-        sync_drive_kml(force=True)
-        threading.Thread(target=drive_sync_loop, daemon=True).start()
-        threading.Thread(target=drive_kml_loop, daemon=True).start()
+        print("Modo Render: Excel y KML locales del repositorio")
+        print("Excel Render:", EXCEL_PATH)
         threading.Thread(target=lambda: (time.sleep(2), preload_current_kml_cache()), daemon=True).start()
     print("Excel:",EXCEL_PATH)
     if not os.path.exists(EXCEL_PATH):
