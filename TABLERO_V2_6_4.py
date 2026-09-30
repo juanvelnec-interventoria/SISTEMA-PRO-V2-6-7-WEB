@@ -426,14 +426,14 @@ HTML = r"""
 label{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582;display:flex;flex-direction:column;gap:4px}select,input{border:1px solid #c9d3dc;border-radius:7px;padding:8px 9px;min-width:120px;color:#1c2d3b;background:#fff}.filters button{border:0;background:#102a3c;color:#fff;padding:9px 14px;border-radius:7px;font-weight:700}.fstatus{margin-left:auto;font-size:10px;color:var(--muted)}
 .page{display:none}.page.active{display:block}.hero{display:flex;justify-content:space-between;align-items:end;margin:7px 2px 11px}.hero h2{margin:0;font-size:20px}.hero p{margin:3px 0 0;color:var(--muted);font-size:10px}
 .kpis{display:grid;grid-template-columns:repeat(8,1fr);gap:9px;margin-bottom:13px}.kpi{min-height:98px;color:#fff;border-radius:9px;padding:12px 13px;position:relative;overflow:hidden;box-shadow:0 5px 15px #0d2c4018}.kpi:after{content:"";position:absolute;width:70px;height:70px;border-radius:50%;right:-24px;top:-24px;background:#fff1}.kpi .ico{font-size:23px}.kpi .v{font-size:25px;font-weight:900;margin-top:2px}.kpi .l{font-size:9px;text-transform:uppercase;font-weight:800;margin-top:3px}.kpi .s{font-size:8px;opacity:.8;margin-top:4px}.kblue{background:#0d4f83}.kgreen{background:#0a9b55}.kcyan{background:#0793a5}.kgold{background:#d99108}.kred{background:#d52e40}.kpurple{background:#6630ba}.kgray{background:#5d6267}
-.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;box-shadow:0 4px 15px #102b3c0b;min-width:0;min-height:320px;overflow:hidden}.card h3{font-size:13px;margin:0 0 8px;line-height:1.25}.span2{grid-column:span 8}.span3{grid-column:1/-1}.chart{height:340px;min-height:300px;width:100%}.daily-axis-card .chart{height:350px;min-height:340px}.map{height:450px;border-radius:8px;overflow:hidden}.legend{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.4}.design-panel{display:none;position:fixed;inset:0;background:#071c2dbb;z-index:5000;align-items:center;justify-content:center;padding:20px}.design-panel.open{display:flex}.design-box{background:#fff;border-radius:14px;width:min(900px,96vw);max-height:88vh;overflow:auto;padding:18px;box-shadow:0 20px 60px #0008}.design-box h2{margin:0 0 5px;font-size:20px}.design-box p{margin:0 0 14px;color:var(--muted);font-size:11px}.design-grid{display:grid;grid-template-columns:1fr 110px 110px;gap:8px;align-items:center}.design-grid .head{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582}.design-grid select,.design-grid input{min-width:0;width:100%;padding:7px}.design-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.design-actions button{border:0;border-radius:7px;padding:9px 14px;font-weight:800;cursor:pointer}.helpbox{background:#f5f8fa;border:1px solid var(--line);border-radius:9px;padding:10px;margin:10px 0;font-size:10px;color:#556570}.definition{background:#f7fafc;border-left:4px solid var(--blue);padding:9px 11px;border-radius:6px;font-size:10px;color:#596771;margin-bottom:10px}.kpi-note{font-size:8px;opacity:.86;margin-top:5px}.mini-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.mini-kpi{background:#f6f8fa;border:1px solid var(--line);border-radius:8px;padding:10px}.mini-kpi b{font-size:20px;display:block}.mini-kpi span{font-size:9px;color:var(--muted)}.status-good{color:#138653;font-weight:800}.status-bad{color:#c42d3c;font-weight:800}.status-info{color:#1688e8;font-weight:800}.status-warn{color:#a97713;font-weight:800}.maptab{border:1px solid #cbd6de;background:#fff;color:#153246;border-radius:7px;padding:8px 12px;font-weight:800;cursor:pointer}.maptab.active{background:#1688e8;color:#fff;border-color:#1688e8}.route-palette{display:inline-flex;gap:3px;align-items:center;margin-left:2px}.route-palette button{width:17px;height:17px;border:1px solid #fff;outline:1px solid #cbd6de;border-radius:50%;padding:0;cursor:pointer}.route-palette button:hover{transform:scale(1.15)}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;box-shadow:0 4px 15px #102b3c0b;min-width:0;min-height:320px;overflow:hidden}.card h3{font-size:13px;margin:0 0 8px;line-height:1.25}.span2{grid-column:span 8}.span3{grid-column:1/-1}.chart{height:340px;min-height:300px;width:100%}.daily-axis-card .chart{height:350px;min-height:340px}.map{height:450px;border-radius:8px;overflow:hidden}.legend{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.4}.design-panel{display:none;position:fixed;inset:0;background:#071c2dbb;z-index:5000;align-items:center;justify-content:center;padding:20px}.design-panel.open{display:flex}.design-box{background:#fff;border-radius:14px;width:min(900px,96vw);max-height:88vh;overflow:auto;padding:18px;box-shadow:0 20px 60px #0008}.design-box h2{margin:0 0 5px;font-size:20px}.design-box p{margin:0 0 14px;color:var(--muted);font-size:11px}.design-grid{display:grid;grid-template-columns:minmax(240px,1fr) 170px 110px 110px;gap:8px;align-items:center}.design-grid .head{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582}.design-grid select,.design-grid input{min-width:0;width:100%;padding:7px}.design-grid .pos-controls{display:flex;align-items:center;justify-content:center;gap:5px}.design-grid .pos-controls button{width:32px;height:32px;border:1px solid #cbd6de;background:#fff;color:#153246;border-radius:7px;font-weight:900;font-size:15px;cursor:pointer}.design-grid .pos-controls button:hover{background:#eef5fa}.design-grid .pos-number{min-width:18px;text-align:center;font-weight:800;color:#4c5e6b}.design-grid .pos-disabled{opacity:.35;cursor:not-allowed!important}.design-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.design-actions button{border:0;border-radius:7px;padding:9px 14px;font-weight:800;cursor:pointer}.helpbox{background:#f5f8fa;border:1px solid var(--line);border-radius:9px;padding:10px;margin:10px 0;font-size:10px;color:#556570}.definition{background:#f7fafc;border-left:4px solid var(--blue);padding:9px 11px;border-radius:6px;font-size:10px;color:#596771;margin-bottom:10px}.kpi-note{font-size:8px;opacity:.86;margin-top:5px}.mini-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.mini-kpi{background:#f6f8fa;border:1px solid var(--line);border-radius:8px;padding:10px}.mini-kpi b{font-size:20px;display:block}.mini-kpi span{font-size:9px;color:var(--muted)}.status-good{color:#138653;font-weight:800}.status-bad{color:#c42d3c;font-weight:800}.status-info{color:#1688e8;font-weight:800}.status-warn{color:#a97713;font-weight:800}.maptab{border:1px solid #cbd6de;background:#fff;color:#153246;border-radius:7px;padding:8px 12px;font-weight:800;cursor:pointer}.maptab.active{background:#1688e8;color:#fff;border-color:#1688e8}.route-palette{display:inline-flex;gap:3px;align-items:center;margin-left:2px}.route-palette button{width:17px;height:17px;border:1px solid #fff;outline:1px solid #cbd6de;border-radius:50%;padding:0;cursor:pointer}.route-palette button:hover{transform:scale(1.15)}
 .alertgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}.abox{color:#fff;border-radius:9px;padding:13px}.abox .n{font-size:25px;font-weight:900}.abox .t{font-size:9px;text-transform:uppercase;font-weight:800}.ar{background:#c52d3d}.ao{background:#d87917}.ay{background:#9d7b17}.ag{background:#20835a}
 .scroll{overflow:auto;max-height:500px;border:1px solid var(--line);border-radius:8px}table{border-collapse:collapse;width:100%;font-size:10px}th,td{padding:7px 8px;border-bottom:1px solid #edf0f2;text-align:left;white-space:nowrap}th{background:#f4f7f9;color:#5f6d77;text-transform:uppercase;font-size:9px;position:sticky;top:0;z-index:2}.good{color:#138653;font-weight:800}.bad{color:#c42d3c;font-weight:800}.warn{color:#a97713;font-weight:800}.info{color:#1688e8;font-weight:800}.pill{padding:3px 7px;border-radius:12px;background:#edf2f5;font-weight:800}
 .detailgrid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.routebox{background:#f6f8fa;border:1px solid var(--line);border-radius:9px;padding:11px}.routebox h4{margin:0 0 7px}.routebox p{font-size:10px;margin:4px 0;color:#596771}
 .footer{padding:16px 2px;color:#77848d;font-size:9px;text-align:center}
 @media(max-width:1250px){.kpis{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:repeat(12,minmax(0,1fr))}}
-@media(max-width:750px){.top{height:auto;padding:13px}.clock,.city{display:none}.brand h1{font-size:28px}.grid{grid-template-columns:1fr}.card{grid-column:1/-1!important}.kpis{grid-template-columns:1fr 1fr}.alertgrid{grid-template-columns:1fr 1fr}.detailgrid{grid-template-columns:1fr}.design-grid{grid-template-columns:1fr 90px 90px}}
-.route-observation{min-width:420px;max-width:700px;white-space:normal;line-height:1.3;text-align:left;vertical-align:top;overflow-wrap:anywhere}.technical-observation{font-size:10px;color:#334450;font-weight:600}.technical-observation:hover{white-space:normal}.stop-count{font-weight:800;text-align:center}</style>
+@media(max-width:750px){.top{height:auto;padding:13px}.clock,.city{display:none}.brand h1{font-size:28px}.grid{grid-template-columns:1fr}.card{grid-column:1/-1!important}.kpis{grid-template-columns:1fr 1fr}.alertgrid{grid-template-columns:1fr 1fr}.detailgrid{grid-template-columns:1fr}.design-grid{grid-template-columns:minmax(170px,1fr) 120px 88px 88px}}
+.route-observation{min-width:420px;max-width:650px;white-space:normal;line-height:1.25;text-align:left;vertical-align:top}.route-observation:hover{white-space:normal}.technical-observation{min-width:420px;max-width:700px;white-space:normal;line-height:1.3;text-align:left;vertical-align:top;overflow-wrap:anywhere;font-size:10px;color:#334450;font-weight:600}.stop-count{font-weight:800;text-align:center}</style>
 </head>
 <body>
 <header class="top">
@@ -452,7 +452,7 @@ label{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582;displ
 <button onclick="page('gps',this)">⌖ Calidad GPS</button>
 </nav>
 
-<div id="designPanel" class="design-panel"><div class="design-box"><h2>⚙ Configuración visual del tablero</h2><p>Modifica el ancho y la altura de cada panel sin tocar los datos. Los cambios son solo de presentación y quedan guardados en este navegador.</p><div class="helpbox"><b>Ancho:</b> 25%, 33%, 50%, 67%, 75% o 100% de la fila. <b>Altura:</b> puedes escribir el valor en píxeles. Si un gráfico necesita más espacio, aumenta su ancho o altura.</div><div class="design-grid" id="designGrid"><div class="head">Panel</div><div class="head">Ancho</div><div class="head">Altura (px)</div></div><div class="design-actions"><button onclick="resetDesign()" style="background:#eef2f6;color:#223746">Restablecer diseño</button><button onclick="closeDesign()" style="background:#102a3c;color:#fff">Cerrar</button><button onclick="applyDesign()" style="background:#1688e8;color:#fff">Guardar cambios</button></div></div></div><main class="wrap">
+<div id="designPanel" class="design-panel"><div class="design-box"><h2>⚙ Configuración visual del tablero</h2><p>Modifica el ancho y la altura de cada panel sin tocar los datos. Los cambios son solo de presentación y quedan guardados en este navegador.</p><div class="helpbox"><b>Ancho:</b> 25%, 33%, 50%, 67%, 75% o 100% de la fila. <b>Altura:</b> puedes escribir el valor en píxeles. Si un gráfico necesita más espacio, aumenta su ancho o altura.</div><div class="design-grid" id="designGrid"><div class="head">Panel</div><div class="head">Posición</div><div class="head">Ancho</div><div class="head">Altura (px)</div></div><div class="design-actions"><button onclick="resetDesign()" style="background:#eef2f6;color:#223746">Restablecer diseño</button><button onclick="closeDesign()" style="background:#102a3c;color:#fff">Cerrar</button><button onclick="applyDesign()" style="background:#1688e8;color:#fff">Guardar cambios</button></div></div></div><main class="wrap">
 <div class="filters">
 <label>Año-Mes<select id="month"><option>Todos</option></select></label>
 <label>Turno<select id="shift"><option>Todos</option><option>DIURNO</option><option>NOCTURNO</option></select></label>
@@ -482,6 +482,7 @@ label{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582;displ
 <div class="card daily-axis-card" data-default-span="4"><h3>Recorridos registrados por día</h3><div class="legend">Cantidad de recorridos registrados en el Excel para cada fecha.</div><div id="dailyChart" class="chart"></div></div>
 <div class="card" data-default-span="6"><h3>Inicios tardíos por técnico</h3><div class="legend">Número de recorridos de cada técnico que comenzaron después de la hora programada.</div><div id="lateChart" class="chart"></div></div>
 <div class="card" data-default-span="6"><h3>Terminaciones anticipadas por técnico</h3><div class="legend">Número de recorridos de cada técnico que finalizaron antes de la hora programada.</div><div id="earlyChart" class="chart"></div></div>
+<div class="card span3" data-default-span="12"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><h3 style="margin-bottom:2px">Kilómetros por técnico</h3><div class="legend" style="margin-top:0">Kilómetros acumulados por técnico según los filtros seleccionados.</div></div><button onclick="copyKmTech()" style="background:#fff;color:#29465a;border:1px solid #cbd6de;border-radius:6px;padding:5px 9px;font-size:10px;cursor:pointer">COPIAR</button></div><div id="kmTechChart" class="chart" style="height:360px;min-height:340px"></div></div>
 <div class="card span3" data-default-span="12"><div style="display:flex;gap:10px;align-items:end;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px"><div><h3 style="margin-bottom:2px">Mapa de recorridos · selección de recorrido</h3><div class="legend" style="margin-top:0">Selecciona un turno o un recorrido específico para visualizar sus puntos de inicio y finalización.</div></div><label style="min-width:360px;flex:1;max-width:700px;text-transform:none">Visualizar recorrido<select id="summaryRouteSelect" onchange="changeSummaryRoute()"><option value="__all__">Todos los recorridos</option></select></label></div><div id="summaryRouteInfo" class="legend" style="margin:0 0 7px;font-weight:700;color:#334450"></div><div id="map1" class="map"></div><div class="legend">● Inicio &nbsp; ● Finalización &nbsp; La selección respeta los filtros superiores. Las coordenadas se toman directamente del Excel maestro.</div></div>
 <div class="card" data-default-span="4"><h3>Distribución por turno</h3><div id="shiftChart" class="chart"></div></div>
 <div class="card" data-default-span="4"><h3>Estado de inicio</h3><div id="startChart" class="chart"></div></div>
@@ -498,7 +499,7 @@ label{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582;displ
 
 <section id="recorridos" class="page">
 <div class="hero"><div><h2>Recorridos</h2><p>Detalle de los registros filtrados.</p></div></div>
-<div class="definition"><b>Detalle de recorridos:</b> aquí se revisa registro por registro la información tomada del Excel. <b>OBSERVACIONES TÉCNICAS</b> corresponde exclusivamente a la columna técnica del Excel; no se reemplaza por la columna general de observaciones. Las columnas <b>P ≥10, P ≥15, P ≥30, P ≥40 y P ≥60</b> muestran las paradas detectadas en cada recorrido para cada técnico.</div><div class="card span3"><div class="scroll" style="max-height:650px"><table id="routeTable"></table></div></div>
+<div class="definition"><b>Detalle de recorridos:</b> aquí se puede revisar registro por registro lo que el sistema tomó del Excel. Los filtros de la parte superior se aplican a esta tabla.</div><div class="card span3"><div class="scroll" style="max-height:650px"><table id="routeTable"></table></div></div>
 </section>
 
 <section id="mapa" class="page">
@@ -590,14 +591,141 @@ function showMapTab(tab,b){
 }
 function page(id,b){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');setTimeout(()=>{[map1,map2,mapDiurno,mapNocturno].forEach(m=>{if(m)m.invalidateSize(true)});if(id==='mapa'){if(map2)updateMap(map2,filt(),layers2);refreshMonthlyMap()}if(id==='resumen'&&map1)changeSummaryRoute();render()},180)}
 
-function panelCards(){return [...document.querySelectorAll('.grid .card')];}
+function panelGrid(){return document.querySelector('#resumen .grid')}
+function panelCards(){
+ const g=panelGrid();
+ return g?[...g.querySelectorAll(':scope > .card')]:[];
+}
+function panelKey(c){
+ if(!c.dataset.panelKey){
+   const title=(c.querySelector('h3')?.textContent||'panel').trim().toLowerCase()
+     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+     .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+   c.dataset.panelKey=title||'panel';
+ }
+ return c.dataset.panelKey;
+}
 function spanToPct(span){return ({3:'25%',4:'33%',6:'50%',8:'67%',9:'75%',12:'100%'})[span]||'50%'}
 function pctToSpan(v){return ({'25%':3,'33%':4,'50%':6,'67%':8,'75%':9,'100%':12})[v]||6}
-function openDesign(){let grid=$('designGrid');grid.innerHTML='<div class="head">Panel</div><div class="head">Ancho</div><div class="head">Altura (px)</div>';panelCards().forEach((c,i)=>{let id='p'+i;c.dataset.pid=id;let title=c.querySelector('h3')?.textContent||('Panel '+(i+1));let span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2')?'8':'6'));let saved=null;try{saved=JSON.parse(localStorage.getItem('spro26-'+id)||'null')}catch(e){saved=null}let pct=saved?.pct||spanToPct(span);let h=saved?.h||parseInt(getComputedStyle(c).minHeight)||320;grid.insertAdjacentHTML('beforeend',`<div><b>${esc(title)}</b></div><select id="dw-${id}"><option ${pct==='25%'?'selected':''}>25%</option><option ${pct==='33%'?'selected':''}>33%</option><option ${pct==='50%'?'selected':''}>50%</option><option ${pct==='67%'?'selected':''}>67%</option><option ${pct==='75%'?'selected':''}>75%</option><option ${pct==='100%'?'selected':''}>100%</option></select><input id="dh-${id}" type="number" min="280" max="900" step="10" value="${h}">`)});$('designPanel').classList.add('open')}
-function applyDesign(){panelCards().forEach((c,i)=>{let id=c.dataset.pid||'p'+i;let pct=$(('dw-'+id)).value;let h=Math.max(280,Math.min(900,Number($(('dh-'+id)).value)||320));c.style.gridColumn=`span ${pctToSpan(pct)}`;c.style.height=h+'px';localStorage.setItem('spro26-'+id,JSON.stringify({pct,h}))});closeDesign();setTimeout(()=>{render();[map1,map2,mapDiurno,mapNocturno].forEach(m=>{if(m)m.invalidateSize(true)})},100)}
-function resetDesign(){Object.keys(localStorage).filter(k=>k.indexOf('spro26-')===0).forEach(k=>localStorage.removeItem(k));panelCards().forEach((c,i)=>{let span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2')?'8':'6'));c.style.height='';c.style.gridColumn=`span ${span}`});openDesign()}
+function panelSavedSize(c,i){
+ const key=panelKey(c);
+ let saved=null;
+ try{saved=JSON.parse(localStorage.getItem('spro26-size-'+key)||'null')}catch(e){saved=null}
+ if(!saved){
+   try{
+     const legacy=JSON.parse(localStorage.getItem('spro26-p'+i)||'null');
+     if(legacy){
+       saved=legacy;
+       localStorage.setItem('spro26-size-'+key,JSON.stringify(legacy));
+     }
+   }catch(e){}
+ }
+ return saved;
+}
+function savePanelOrder(){
+ const order=panelCards().map(c=>panelKey(c));
+ localStorage.setItem('spro26-order',JSON.stringify(order));
+}
+function restorePanelOrder(){
+ const g=panelGrid(); if(!g)return;
+ let order=null;
+ try{order=JSON.parse(localStorage.getItem('spro26-order')||'null')}catch(e){order=null}
+ if(!Array.isArray(order)||!order.length)return;
+ const cards=panelCards();
+ const byKey={};cards.forEach(c=>byKey[panelKey(c)]=c);
+ order.forEach(k=>{if(byKey[k])g.appendChild(byKey[k])});
+ cards.forEach(c=>{if(!order.includes(panelKey(c)))g.appendChild(c)});
+}
+function refreshDesignRows(){
+ const grid=$('designGrid');if(!grid)return;
+ [...grid.querySelectorAll('.design-row')].forEach((row,i)=>{
+   const n=row.querySelector('.pos-number');if(n)n.textContent=String(i+1);
+   const up=row.querySelector('.move-up'),down=row.querySelector('.move-down');
+   if(up)up.classList.toggle('pos-disabled',i===0);
+   if(down)down.classList.toggle('pos-disabled',i===grid.querySelectorAll('.design-row').length-1);
+ });
+}
+function movePanel(key,direction){
+ const g=panelGrid();if(!g)return;
+ const cards=panelCards(), idx=cards.findIndex(c=>panelKey(c)===key);
+ if(idx<0)return;
+ const target=idx+direction;
+ if(target<0||target>=cards.length)return;
+ const a=cards[idx],b=cards[target];
+ if(direction<0)g.insertBefore(a,b);else g.insertBefore(b,a);
+ savePanelOrder();
+ openDesign();
+}
+function openDesign(){
+ restorePanelOrder();
+ let grid=$('designGrid');
+ grid.innerHTML='<div class="head">Panel</div><div class="head">Posición</div><div class="head">Ancho</div><div class="head">Altura (px)</div>';
+ panelCards().forEach((c,i)=>{
+   const id=panelKey(c);
+   c.dataset.pid=id;
+   const title=c.querySelector('h3')?.textContent||('Panel '+(i+1));
+   let span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2')?'8':'6'));
+   const saved=panelSavedSize(c,i);
+   const pct=saved?.pct||spanToPct(span);
+   const h=saved?.h||parseInt(getComputedStyle(c).minHeight)||320;
+   grid.insertAdjacentHTML('beforeend',`
+    <div class="design-row" data-key="${esc(id)}"><b>${esc(title)}</b></div>
+    <div class="design-row pos-controls" data-key="${esc(id)}">
+      <button type="button" class="move-up" title="Subir panel" onclick="movePanel('${id}',-1)">↑</button>
+      <span class="pos-number">${i+1}</span>
+      <button type="button" class="move-down" title="Bajar panel" onclick="movePanel('${id}',1)">↓</button>
+    </div>
+    <div class="design-row"><select id="dw-${id}">
+      <option ${pct==='25%'?'selected':''}>25%</option><option ${pct==='33%'?'selected':''}>33%</option>
+      <option ${pct==='50%'?'selected':''}>50%</option><option ${pct==='67%'?'selected':''}>67%</option>
+      <option ${pct==='75%'?'selected':''}>75%</option><option ${pct==='100%'?'selected':''}>100%</option>
+    </select></div>
+    <div class="design-row"><input id="dh-${id}" type="number" min="280" max="900" step="10" value="${h}"></div>`);
+ });
+ refreshDesignRows();
+ $('designPanel').classList.add('open');
+}
+function applyDesign(){
+ panelCards().forEach((c,i)=>{
+   const id=panelKey(c);
+   const pct=$(('dw-'+id)).value;
+   const h=Math.max(280,Math.min(900,Number($(('dh-'+id)).value)||320));
+   c.style.gridColumn=`span ${pctToSpan(pct)}`;
+   c.style.height=h+'px';
+   localStorage.setItem('spro26-size-'+id,JSON.stringify({pct,h}));
+ });
+ savePanelOrder();
+ closeDesign();
+ setTimeout(()=>{render();[map1,map2,mapDiurno,mapNocturno].forEach(m=>{if(m)m.invalidateSize(true)})},100);
+}
+function resetDesign(){
+ Object.keys(localStorage).filter(k=>k.indexOf('spro26-')===0).forEach(k=>localStorage.removeItem(k));
+ const g=panelGrid();
+ if(g){
+   const defaults=[...g.querySelectorAll(':scope > .card')];
+   defaults.sort((a,b)=>Number(a.dataset.originalIndex||0)-Number(b.dataset.originalIndex||0)).forEach(c=>{
+     c.style.height='';
+     const span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2')?'8':'6'));
+     c.style.gridColumn=`span ${span}`;
+     g.appendChild(c);
+   });
+ }
+ openDesign();
+}
 function closeDesign(){$('designPanel').classList.remove('open')}
-function restoreDesign(){panelCards().forEach((c,i)=>{let id='p'+i;c.dataset.pid=id;let saved=null;try{saved=JSON.parse(localStorage.getItem('spro26-'+id)||'null')}catch(e){saved=null}let span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2')?'8':'6'));if(saved){c.style.gridColumn=`span ${pctToSpan(saved.pct)}`;c.style.height=saved.h+'px'}else c.style.gridColumn=`span ${span}`})}
+function restoreDesign(){
+ const g=panelGrid();if(!g)return;
+ [...g.querySelectorAll(':scope > .card')].forEach((c,i)=>{
+   if(!c.dataset.originalIndex)c.dataset.originalIndex=String(i);
+   const id=panelKey(c);
+   c.dataset.pid=id;
+   const saved=panelSavedSize(c,i);
+   const span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2')?'8':'6'));
+   if(saved){c.style.gridColumn=`span ${pctToSpan(saved.pct)}`;c.style.height=saved.h+'px'}
+   else c.style.gridColumn=`span ${span}`;
+ });
+ restorePanelOrder();
+}
 function resetF(){['month','shift','tech','si','sf'].forEach(x=>$(x).value='Todos');$('d1').value='';$('d2').value='';render()}
 function initMap(id){let el=$(id);el.style.minHeight='450px';let m=L.map(id,{preferCanvas:true,zoomControl:true}).setView([6.2442,-75.5812],11);let sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri'}).addTo(m);let calles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'});L.control.layers({'Satélite':sat,'Calles':calles},null,{collapsed:true,position:'topright'}).addTo(m);setTimeout(()=>m.invalidateSize(true),250);return m;}
 function updateMap(m,d,layers){layers.forEach(x=>m.removeLayer(x));layers.length=0;let pts=[];d.forEach((r,i)=>{let la=+r.LatIni,lo=+r.LonIni,laf=+r.LatFin,lof=+r.LonFin;if(Number.isFinite(la)&&Number.isFinite(lo)){let mk=L.circleMarker([la,lo],{radius:6,color:'#1688e8',fillColor:'#1688e8',fillOpacity:.9}).bindPopup(`<b>INICIO</b><br>${esc(r.Fecha)} · ${esc(r['Técnico'])}<br>${esc(r.Turno)}<br>${esc(r['Archivo'])}<br>Lat: ${la.toFixed(6)}<br>Lon: ${lo.toFixed(6)}`);mk.addTo(m);layers.push(mk);pts.push([la,lo])}if(Number.isFinite(laf)&&Number.isFinite(lof)){let mk=L.circleMarker([laf,lof],{radius:6,color:'#df3f4f',fillColor:'#df3f4f',fillOpacity:.9}).bindPopup(`<b>FINALIZACIÓN</b><br>${esc(r.Fecha)} · ${esc(r['Técnico'])}<br>${esc(r.Turno)}<br>${esc(r['Archivo'])}<br>Lat: ${laf.toFixed(6)}<br>Lon: ${lof.toFixed(6)}`);mk.addTo(m);layers.push(mk);pts.push([laf,lof])}if(Number.isFinite(la)&&Number.isFinite(lo)&&Number.isFinite(laf)&&Number.isFinite(lof)){let ln=L.polyline([[la,lo],[laf,lof]],{color:'#1688e8',weight:1,opacity:.35,dashArray:'4 4'}).addTo(m);layers.push(ln)}});if(pts.length)m.fitBounds(pts,{padding:[20,20],maxZoom:13})}
@@ -681,6 +809,9 @@ function refreshMonthlyMap(){
  if(!kmlCache[month])loadKML(month);else drawMonthlyKML(month);
  mapDiurno.invalidateSize(true);mapNocturno.invalidateSize(true);
 }
+function copyKmTech(){
+ try{let d=filt(),m={};d.forEach(r=>{let t=r['Técnico']||'Sin técnico';m[t]=(m[t]||0)+(+r['Kilómetros']||0)});let rows=Object.keys(m).sort((a,b)=>m[b]-m[a]).map((t,i)=>`${i+1}. ${t}: ${m[t].toFixed(1)} km`);if(navigator.clipboard)navigator.clipboard.writeText(rows.join('\n'));}catch(e){}
+}
 function render(){
 let d=filt();setupSummaryRouteSelector(d);let sa=d.filter(r=>!['NO DISPONIBLE','REVISAR','REVISAR GPX'].includes(r['Estado inicio'])),ea=d.filter(r=>!['NO DISPONIBLE','REVISAR','REVISAR GPX'].includes(r['Estado fin']));
 let sok=sa.filter(r=>['INICIO CUMPLE','INICIO ANTES DEL HORARIO'].includes(r['Estado inicio'])).length,eok=ea.filter(r=>['FIN CUMPLE','TERMINÓ DESPUÉS'].includes(r['Estado fin'])).length;
@@ -689,14 +820,14 @@ let km=d.reduce((a,r)=>a+(+r.Kilómetros||0),0),gpsN=d.reduce((a,r)=>a+(+r['Huec
 $('k1').textContent=d.length;$('k2').textContent=fmt(km);$('k3').textContent=pct(sok,sa.length);$('k4').textContent=pct(eok,ea.length);$('k5').textContent=late.length;$('k6').textContent=early.length;$('k7').textContent=Math.round(gpsN);$('k8').textContent=secFmt(dev);
 $('a1').textContent=late.length;$('a2').textContent=early.length;$('a3').textContent=Math.round(gpsN);$('a4').textContent=rev.length;$('gm1').textContent=Math.round(gpsN);$('gm2').textContent=gps.length;$('gm3').textContent=pct(gps.length,d.length);$('fstatus').textContent=`${d.length} recorridos · ${new Set(d.map(r=>r['Técnico'])).size} técnicos`;
 let by={};d.forEach(r=>{let t=r['Técnico']||'Sin técnico';if(!by[t])by[t]={n:0,km:0,late:0,early:0,gps:0,okS:0,avS:0,okE:0,avE:0,dev:0};let x=by[t];x.n++;x.km+=+r.Kilómetros||0;x.gps+=+r['Huecos GPS >=10 min']||0;if(!['NO DISPONIBLE','REVISAR','REVISAR GPX'].includes(r['Estado inicio'])){x.avS++;if(['INICIO CUMPLE','INICIO ANTES DEL HORARIO'].includes(r['Estado inicio']))x.okS++}if(!['NO DISPONIBLE','REVISAR','REVISAR GPX'].includes(r['Estado fin'])){x.avE++;if(['FIN CUMPLE','TERMINÓ DESPUÉS'].includes(r['Estado fin']))x.okE++}if(r['Estado inicio']==='INICIO TARDÍO'){x.late++;x.dev+=+r.DifIniSec||0}if(r['Estado fin']==='TERMINÓ ANTES'){x.early++;x.dev+=+r.DifFinSec||0}});
-let names=Object.keys(by);bars('techChart',names,[names.map(t=>by[t].avS?100*by[t].okS/by[t].avS:0),names.map(t=>by[t].avE?100*by[t].okE/by[t].avE:0)],['Inicio','Fin'],100);hbars('lateChart',names.slice().sort((a,b)=>by[b].late-by[a].late),names.slice().sort((a,b)=>by[b].late-by[a].late).map(t=>by[t].late),'#df3f4f');hbars('earlyChart',names.slice().sort((a,b)=>by[b].early-by[a].early),names.slice().sort((a,b)=>by[b].early-by[a].early).map(t=>by[t].early),'#f08b25');
+let names=Object.keys(by);bars('techChart',names,[names.map(t=>by[t].avS?100*by[t].okS/by[t].avS:0),names.map(t=>by[t].avE?100*by[t].okE/by[t].avE:0)],['Inicio','Fin'],100);hbars('lateChart',names.slice().sort((a,b)=>by[b].late-by[a].late),names.slice().sort((a,b)=>by[b].late-by[a].late).map(t=>by[t].late),'#df3f4f');hbars('earlyChart',names.slice().sort((a,b)=>by[b].early-by[a].early),names.slice().sort((a,b)=>by[b].early-by[a].early).map(t=>by[t].early),'#f08b25');let kmNames=names.slice().sort((a,b)=>by[b].km-by[a].km);hbars('kmTechChart',kmNames,kmNames.map(t=>by[t].km),'#1688e8');
 let daily={};d.forEach(r=>daily[r.Fecha]=(daily[r.Fecha]||0)+1);let dates=Object.keys(daily).sort();lineChart('dailyChart',dates,dates.map(x=>daily[x]));lineChart('daily2',dates,dates.map(x=>daily[x]));
 donut('shiftChart',['DIURNO','NOCTURNO'],['DIURNO','NOCTURNO'].map(x=>d.filter(r=>r.Turno===x).length));
 let ss={};d.forEach(r=>ss[r['Estado inicio']||'SIN DATO']=(ss[r['Estado inicio']||'SIN DATO']||0)+1);donut('startChart',Object.keys(ss),Object.values(ss));
 let es={};d.forEach(r=>es[r['Estado fin']||'SIN DATO']=(es[r['Estado fin']||'SIN DATO']||0)+1);donut('endChart',Object.keys(es),Object.values(es));
 let st=names.slice().sort((a,b)=>by[b].km-by[a].km);let th='<thead><tr><th>#</th><th>Técnico</th><th>Recorridos</th><th>Km</th><th>% Inicio</th><th>% Fin</th><th>Tardíos</th><th>Terminó antes</th><th>GPS</th><th>Desviación</th></tr></thead><tbody>';st.forEach((t,i)=>{let x=by[t];th+=`<tr><td>${i+1}</td><td><b>${esc(t)}</b></td><td>${x.n}</td><td>${x.km.toFixed(1)}</td><td class="${x.okS<x.avS*.8?'bad':'good'}">${pct(x.okS,x.avS)}</td><td class="${x.okE<x.avE*.8?'bad':'good'}">${pct(x.okE,x.avE)}</td><td class="${x.late?'bad':'good'}">${x.late}</td><td class="${x.early?'bad':'good'}">${x.early}</td><td class="${x.gps?'warn':'good'}">${x.gps}</td><td>${secFmt(x.dev)}</td></tr>`});$('rankTable').innerHTML=th+'</tbody>';$('techTable').innerHTML=th+'</tbody>';
 let ah='<thead><tr><th>Fecha</th><th>Técnico</th><th>Turno</th><th>Archivo</th><th>Inicio</th><th>Fin</th><th>GPS</th><th>Estado</th><th>Prioridad</th><th>Qué verificar</th></tr></thead><tbody>';let alerts=d.filter(r=>r['Estado inicio']==='INICIO TARDÍO'||r['Estado fin']==='TERMINÓ ANTES'||(+r['Huecos GPS >=10 min']||0)>0||String(r['Estado recorrido']||'').includes('REVISAR')).sort((a,b)=>String(b.Fecha).localeCompare(String(a.Fecha)));alerts.forEach(r=>{let si=String(r['Estado inicio']||''),sf=String(r['Estado fin']||''),sr=String(r['Estado recorrido']||''),g=+r['Huecos GPS >=10 min']||0;let ci=si==='INICIO CUMPLE'?'good':si==='INICIO ANTES DEL HORARIO'?'info':si==='INICIO TARDÍO'?'bad':'warn';let cf=sf==='FIN CUMPLE'?'good':sf==='TERMINÓ DESPUÉS'?'info':sf==='TERMINÓ ANTES'?'bad':'warn';let cg=g>0?'warn':'good';let reasons=[];if(si==='INICIO TARDÍO')reasons.push('Verificar hora real de inicio');if(sf==='TERMINÓ ANTES')reasons.push('Verificar finalización anticipada');if(g>0)reasons.push('Revisar continuidad GPS');if(sr.includes('REVISAR'))reasons.push('Revisar GPX/registro');let pr=(si==='INICIO TARDÍO'||sf==='TERMINÓ ANTES')?'ALTA':(g>0||sr.includes('REVISAR')?'MEDIA':'BAJA');let pc=pr==='ALTA'?'bad':pr==='MEDIA'?'warn':'good';ah+=`<tr><td>${r.Fecha||''}</td><td>${esc(r['Técnico'])}</td><td>${r.Turno||''}</td><td>${esc(r.Archivo)}</td><td class="${ci}">${esc(si||'SIN DATO')}</td><td class="${cf}">${esc(sf||'SIN DATO')}</td><td class="${cg}">${g}</td><td>${esc(sr)}</td><td class="${pc}">${pr}</td><td>${esc(reasons.join(' · ')||'Revisión general')}</td></tr>`});$('alertTable').innerHTML=ah+'</tbody>';$('recentTable').innerHTML=ah+'</tbody>';
-let rh='<thead><tr><th>Fecha</th><th>Técnico</th><th>Turno</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Km</th><th>Vel.</th><th>Estado inicio</th><th>Estado fin</th><th>Estado recorrido</th><th>P ≥10</th><th>P ≥15</th><th>P ≥30</th><th>P ≥40</th><th>P ≥60</th><th>OBSERVACIONES TÉCNICAS</th></tr></thead><tbody>';d.slice().sort((a,b)=>String(b.Fecha).localeCompare(String(a.Fecha))).forEach(r=>{let si=String(r['Estado inicio']||''),sf=String(r['Estado fin']||''),sr=String(r['Estado recorrido']||''),obsTec=String(r['ObservacionesTecnicas']||'');let ci=si==='INICIO CUMPLE'?'good':si==='INICIO ANTES DEL HORARIO'?'info':si==='INICIO TARDÍO'?'bad':'warn';let cf=sf==='FIN CUMPLE'?'good':sf==='TERMINÓ DESPUÉS'?'info':sf==='TERMINÓ ANTES'?'bad':'warn';let ce=sr==='DENTRO DE HORARIO'?'good':sr.includes('ANTICIPADO')?'bad':sr.includes('POSTERIOR')?'info':sr.includes('REVISAR')?'warn':'warn';let p10=+r.Paradas10||0,p15=+r.Paradas15||0,p30=+r.Paradas30||0,p40=+r.Paradas40||0,p60=+r.Paradas60||0;rh+=`<tr><td>${r.Fecha||''}</td><td>${esc(r['Técnico'])}</td><td>${r.Turno||''}</td><td>${esc(r['Inicio Colombia'])}</td><td>${esc(r['Fin Colombia'])}</td><td>${esc(r.Duración)}</td><td>${(+r.Kilómetros||0).toFixed(1)}</td><td>${(+r['Velocidad promedio (km/h)']||0).toFixed(1)}</td><td class="${ci}">${esc(si)}</td><td class="${cf}">${esc(sf)}</td><td class="${ce}">${esc(sr)}</td><td>${p10}</td><td>${p15}</td><td>${p30}</td><td>${p40}</td><td>${p60}</td><td class="route-observation technical-observation" title="${esc(obsTec)}">${esc(obsTec||'Sin observación técnica')}</td></tr>`});$('routeTable').innerHTML=rh+'</tbody>';
+let rh='<thead><tr><th>Fecha</th><th>Técnico</th><th>Turno</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Km</th><th>Vel.</th><th>Estado inicio</th><th>Estado fin</th><th>Estado recorrido</th><th>P ≥10</th><th>P ≥15</th><th>P ≥30</th><th>P ≥40</th><th>P ≥60</th><th>OBSERVACIONES TÉCNICAS</th><th>Observación del sistema</th></tr></thead><tbody>';d.slice().sort((a,b)=>String(b.Fecha).localeCompare(String(a.Fecha))).forEach(r=>{let si=String(r['Estado inicio']||''),sf=String(r['Estado fin']||''),sr=String(r['Estado recorrido']||''),obs=String(r['Observaciones']||''),obsTec=String(r['ObservacionesTecnicas']||'');let ci=si==='INICIO CUMPLE'?'good':si==='INICIO ANTES DEL HORARIO'?'info':si==='INICIO TARDÍO'?'bad':'warn';let cf=sf==='FIN CUMPLE'?'good':sf==='TERMINÓ DESPUÉS'?'info':sf==='TERMINÓ ANTES'?'bad':'warn';let ce=sr==='DENTRO DE HORARIO'?'good':sr.includes('ANTICIPADO')?'bad':sr.includes('POSTERIOR')?'info':sr.includes('REVISAR')?'warn':'warn';rh+=`<tr><td>${r.Fecha||''}</td><td>${esc(r['Técnico'])}</td><td>${r.Turno||''}</td><td>${esc(r['Inicio Colombia'])}</td><td>${esc(r['Fin Colombia'])}</td><td>${esc(r.Duración)}</td><td>${(+r.Kilómetros||0).toFixed(1)}</td><td>${(+r['Velocidad promedio (km/h)']||0).toFixed(1)}</td><td class="${ci}">${esc(si)}</td><td class="${cf}">${esc(sf)}</td><td class="${ce}">${esc(sr)}</td><td class="stop-count">${+r.Paradas10||0}</td><td class="stop-count">${+r.Paradas15||0}</td><td class="stop-count">${+r.Paradas30||0}</td><td class="stop-count">${+r.Paradas40||0}</td><td class="stop-count">${+r.Paradas60||0}</td><td class="technical-observation" title="${esc(obsTec)}">${esc(obsTec||'Sin observación técnica')}</td><td class="route-observation" title="${esc(obs)}">${esc(obs||'Sin observación')}</td></tr>`});$('routeTable').innerHTML=rh+'</tbody>';
 let gt={};d.forEach(r=>{let t=r['Técnico']||'Sin técnico';gt[t]=(gt[t]||0)+(+r['Huecos GPS >=10 min']||0)});let gn=Object.keys(gt).sort((a,b)=>gt[b]-gt[a]);hbars('gpsChart',gn,gn.map(x=>gt[x]),'#7135c8');let aff={};d.forEach(r=>{if((+r['Huecos GPS >=10 min']||0)>0){let t=r['Técnico']||'Sin técnico';aff[t]=(aff[t]||0)+1}});let an=Object.keys(aff).sort((a,b)=>aff[b]-aff[a]);hbars('gpsRoutes',an,an.map(x=>aff[x]),'#1688e8');timeHbars('devChart',names,names.map(t=>by[t].dev));let sh={};d.forEach(r=>{let h=String(r['Inicio Colombia']||'').slice(0,2);if(h)sh[h]=(sh[h]||0)+1});let sn=Object.keys(sh).sort();bars('startHour',sn,[sn.map(x=>sh[x])]);let eh={};d.forEach(r=>{let h=String(r['Fin Colombia']||'').slice(0,2);if(h)eh[h]=(eh[h]||0)+1});let en=Object.keys(eh).sort();bars('endHour',en,[en.map(x=>eh[x])]);
 if(map1)changeSummaryRoute();if(map2)updateMap(map2,d,layers2);$('kmld3').textContent=d.length;if(document.getElementById('mapa')?.classList.contains('active'))refreshMonthlyMap();
 }
@@ -767,64 +898,34 @@ def read_excel():
         headers=[str(x).strip() if x is not None else "" for x in rows[0]]
         df=pd.DataFrame(rows[1:],columns=headers)
         wb.close()
-    # Columnas obligatorias para el tablero. NO usamos "Observaciones" como
-    # observación técnica: la observación técnica debe venir de la columna
-    # específica del Excel (por ejemplo "OBSERVACIONES TECNICAS").
-    required=["Fecha","Año-Mes","Técnico","Turno","Inicio Colombia","Fin Colombia","Diferencia inicio","Diferencia fin","Estado inicio","Estado fin","Kilómetros","Velocidad promedio (km/h)","Huecos GPS >=10 min","Estado recorrido","Duración","Archivo"]
+    required=["Fecha","Año-Mes","Técnico","Turno","Inicio Colombia","Fin Colombia","Diferencia inicio","Diferencia fin","Estado inicio","Estado fin","Kilómetros","Velocidad promedio (km/h)","Huecos GPS >=10 min","Estado recorrido","Duración","Archivo","Observaciones"]
     missing=[c for c in required if c not in df.columns]
     if missing: raise ValueError("Faltan columnas en RECORRIDOS: "+", ".join(missing))
-
-    # Busca columnas por nombre normalizado (acentos, mayúsculas y espacios).
-    # Esto permite leer "OBSERVACIONES TECNICAS", "OBSERVACIONES TÉCNICAS",
-    # "Observación técnica", etc., sin depender de la posición AN del Excel.
+    # MEJORA INCREMENTAL: leer observaciones técnicas y paradas sin modificar las columnas originales.
     import unicodedata
     def norm_col(v):
         v="" if v is None else str(v)
         v=unicodedata.normalize("NFKD",v).encode("ascii","ignore").decode("ascii")
         return " ".join(v.upper().replace("_"," ").split())
-
     normalized={norm_col(c):c for c in df.columns}
-
-    def find_col(candidates):
+    def find_optional(candidates, contains=None):
         for cand in candidates:
-            nc=norm_col(cand)
-            if nc in normalized:
-                return normalized[nc]
-        # coincidencia flexible para variantes como "OBSERVACIONES TECNICAS DEL RECORRIDO"
-        for nc,c in normalized.items():
-            if all(part in nc for part in ["OBSERVACION","TECNIC"]):
-                return c
+            if norm_col(cand) in normalized: return normalized[norm_col(cand)]
+        if contains:
+            for nc,c in normalized.items():
+                if all(part in nc for part in contains): return c
         return None
-
-    obs_tec_col=find_col([
-        "OBSERVACIONES TECNICAS",
-        "OBSERVACIÓN TÉCNICA",
-        "OBSERVACIONES TÉCNICAS",
-        "OBSERVACION TECNICA",
-        "OBSERVACIONES DEL TECNICO",
-        "OBSERVACIÓN DEL TÉCNICO",
-        "OBSERVACIONES DEL RECORRIDO TECNICAS"
-    ])
-
-    # Las paradas se conservan exactamente por recorrido y por técnico.
-    stop_cols={}
-    for key, candidates in {
+    obs_col=find_optional(["OBSERVACIONES TECNICAS","OBSERVACIÓN TÉCNICA","OBSERVACIONES TÉCNICAS","OBSERVACION TECNICA","OBSERVACIONES DEL TECNICO","OBSERVACIÓN DEL TÉCNICO"], contains=["OBSERVACION","TECNIC"])
+    df["ObservacionesTecnicas"]=df[obs_col].fillna("").astype(str) if obs_col else ""
+    for key,cands in {
         "Paradas10":["Paradas >=10 min","Paradas >= 10 min","Paradas 10 min"],
         "Paradas15":["Paradas >=15 min","Paradas >= 15 min","Paradas 15 min"],
         "Paradas30":["Paradas >=30 min","Paradas >= 30 min","Paradas 30 min"],
         "Paradas40":["Paradas >=40 min","Paradas >= 40 min","Paradas 40 min"],
         "Paradas60":["Paradas >=60 min","Paradas >= 60 min","Paradas 60 min"]
     }.items():
-        stop_cols[key]=find_col(candidates)
-
-    # Exponemos campos canónicos al HTML. Si la columna técnica no existe,
-    # dejamos el campo vacío; jamás sustituimos la observación técnica por
-    # "Observaciones", porque son datos diferentes.
-    df["ObservacionesTecnicas"]=df[obs_tec_col].fillna("").astype(str) if obs_tec_col else ""
-    for key,col in stop_cols.items():
+        col=find_optional(cands)
         df[key]=pd.to_numeric(df[col],errors="coerce").fillna(0) if col else 0
-    df["ColumnaObservacionesTecnicas"]=obs_tec_col or ""
-
     # Coordenadas: acepta nombres usados por las versiones anteriores del sistema.
     def coord_col(cands):
         for c in cands:
