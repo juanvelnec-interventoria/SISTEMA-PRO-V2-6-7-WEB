@@ -33,11 +33,9 @@ DRIVE_KML_FALLBACK_IDS = {
 
 
 if RENDER_MODE:
-    # En Render se trabaja únicamente con los archivos publicados en GitHub.
-    # No se consulta Google Drive.
     EXCEL_PATH = os.environ.get("EXCEL_PATH", os.path.join(BASE_DIR, "BASE_RECORRIDOS_PRO_JCA.xlsx"))
-    DIURNO_ROOT = os.environ.get("DIURNO_ROOT", os.path.join(BASE_DIR, "KML", "REC_DIURNO"))
-    NOCTURNO_ROOT = os.environ.get("NOCTURNO_ROOT", os.path.join(BASE_DIR, "KML", "REC_NOCTURNO"))
+    DIURNO_ROOT = os.environ.get("DIURNO_ROOT", os.path.join(BASE_DIR, "Recorrido_Diurno"))
+    NOCTURNO_ROOT = os.environ.get("NOCTURNO_ROOT", os.path.join(BASE_DIR, "Recorrido_Nocturno"))
 else:
     EXCEL_PATH = os.environ.get("EXCEL_PATH", r"C:\Users\USER\Desktop\INTERVENTORIA VELNEC\Recorridos\BASE_RECORRIDOS_PRO_JCA.xlsx")
     DIURNO_ROOT = os.environ.get("DIURNO_ROOT", r"C:\Users\USER\Desktop\INTERVENTORIA VELNEC\Recorridos\Recorrido_Diurno")
@@ -247,11 +245,9 @@ def kml_candidates(year_month, turno):
         return []
     out=[os.path.join(root,n) for n in names]
     if RENDER_MODE:
-        # Los KML web publicados por el actualizador están en KML/REC_DIURNO
-        # y KML/REC_NOCTURNO dentro del repositorio.
         prefix="REC_DIUR" if str(turno).upper()=="DIURNO" else "REC_NOCT"
-        repo_path=os.path.join(BASE_DIR, "KML", "REC_DIURNO" if prefix=="REC_DIUR" else "REC_NOCTURNO", f"{prefix}_{folder}.kml")
-        out.insert(0, repo_path)
+        drive_path=os.path.join(DRIVE_KML_DIR, f"{prefix}_{folder}.kml")
+        out.insert(0, drive_path)
     search_root=DIURNO_ROOT if str(turno).upper()=="DIURNO" else NOCTURNO_ROOT
     if os.path.isdir(search_root):
         targets={n.lower() for n in names}
@@ -430,14 +426,14 @@ HTML = r"""
 label{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582;display:flex;flex-direction:column;gap:4px}select,input{border:1px solid #c9d3dc;border-radius:7px;padding:8px 9px;min-width:120px;color:#1c2d3b;background:#fff}.filters button{border:0;background:#102a3c;color:#fff;padding:9px 14px;border-radius:7px;font-weight:700}.fstatus{margin-left:auto;font-size:10px;color:var(--muted)}
 .page{display:none}.page.active{display:block}.hero{display:flex;justify-content:space-between;align-items:end;margin:7px 2px 11px}.hero h2{margin:0;font-size:20px}.hero p{margin:3px 0 0;color:var(--muted);font-size:10px}
 .kpis{display:grid;grid-template-columns:repeat(8,1fr);gap:9px;margin-bottom:13px}.kpi{min-height:98px;color:#fff;border-radius:9px;padding:12px 13px;position:relative;overflow:hidden;box-shadow:0 5px 15px #0d2c4018}.kpi:after{content:"";position:absolute;width:70px;height:70px;border-radius:50%;right:-24px;top:-24px;background:#fff1}.kpi .ico{font-size:23px}.kpi .v{font-size:25px;font-weight:900;margin-top:2px}.kpi .l{font-size:9px;text-transform:uppercase;font-weight:800;margin-top:3px}.kpi .s{font-size:8px;opacity:.8;margin-top:4px}.kblue{background:#0d4f83}.kgreen{background:#0a9b55}.kcyan{background:#0793a5}.kgold{background:#d99108}.kred{background:#d52e40}.kpurple{background:#6630ba}.kgray{background:#5d6267}
-.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;box-shadow:0 4px 15px #102b3c0b;min-width:0;min-height:320px;overflow:hidden}.card h3{font-size:13px;margin:0 0 8px;line-height:1.25}.span2{grid-column:span 8}.span3{grid-column:1/-1}.copy-chart-btn{float:right;border:1px solid #cbd6de;background:#f5f8fa;color:#30424f;border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer}.copy-chart-btn:hover{background:#eaf1f5}.chart{height:340px;min-height:300px;width:100%}.daily-axis-card .chart{height:350px;min-height:340px}.map{height:450px;border-radius:8px;overflow:hidden}.legend{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.4}.design-panel{display:none;position:fixed;inset:0;background:#071c2dbb;z-index:5000;align-items:center;justify-content:center;padding:20px}.design-panel.open{display:flex}.design-box{background:#fff;border-radius:14px;width:min(900px,96vw);max-height:88vh;overflow:auto;padding:18px;box-shadow:0 20px 60px #0008}.design-box h2{margin:0 0 5px;font-size:20px}.design-box p{margin:0 0 14px;color:var(--muted);font-size:11px}.design-grid{display:grid;grid-template-columns:minmax(300px,1fr) 125px 120px 120px;gap:8px 12px;align-items:center}.design-grid .head{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582}.design-grid select,.design-grid input{min-width:0;width:100%;padding:7px;box-sizing:border-box}.design-move{display:flex;align-items:center;justify-content:center;gap:5px}.design-move button{width:30px;height:30px;border:1px solid #cbd6de;border-radius:6px;background:#f4f7f9;color:#233f50;font-weight:900;font-size:15px;cursor:pointer}.design-move button:hover{background:#e7f0f5}.design-pos{min-width:24px;text-align:center;font-weight:800;color:#566b78}.design-grid .head{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582}.design-grid select,.design-grid input{min-width:0;width:100%;padding:7px}.design-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.design-actions button{border:0;border-radius:7px;padding:9px 14px;font-weight:800;cursor:pointer}.helpbox{background:#f5f8fa;border:1px solid var(--line);border-radius:9px;padding:10px;margin:10px 0;font-size:10px;color:#556570}.definition{background:#f7fafc;border-left:4px solid var(--blue);padding:9px 11px;border-radius:6px;font-size:10px;color:#596771;margin-bottom:10px}.kpi-note{font-size:8px;opacity:.86;margin-top:5px}.mini-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.mini-kpi{background:#f6f8fa;border:1px solid var(--line);border-radius:8px;padding:10px}.mini-kpi b{font-size:20px;display:block}.mini-kpi span{font-size:9px;color:var(--muted)}.status-good{color:#138653;font-weight:800}.status-bad{color:#c42d3c;font-weight:800}.status-info{color:#1688e8;font-weight:800}.status-warn{color:#a97713;font-weight:800}.maptab{border:1px solid #cbd6de;background:#fff;color:#153246;border-radius:7px;padding:8px 12px;font-weight:800;cursor:pointer}.maptab.active{background:#1688e8;color:#fff;border-color:#1688e8}.route-palette{display:inline-flex;gap:3px;align-items:center;margin-left:2px}.route-palette button{width:17px;height:17px;border:1px solid #fff;outline:1px solid #cbd6de;border-radius:50%;padding:0;cursor:pointer}.route-palette button:hover{transform:scale(1.15)}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;box-shadow:0 4px 15px #102b3c0b;min-width:0;min-height:320px;overflow:hidden}.card h3{font-size:13px;margin:0 0 8px;line-height:1.25}.span2{grid-column:span 8}.span3{grid-column:1/-1}.chart{height:340px;min-height:300px;width:100%}.daily-axis-card .chart{height:350px;min-height:340px}.map{height:450px;border-radius:8px;overflow:hidden}.legend{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.4}.design-panel{display:none;position:fixed;inset:0;background:#071c2dbb;z-index:5000;align-items:center;justify-content:center;padding:20px}.design-panel.open{display:flex}.design-box{background:#fff;border-radius:14px;width:min(900px,96vw);max-height:88vh;overflow:auto;padding:18px;box-shadow:0 20px 60px #0008}.design-box h2{margin:0 0 5px;font-size:20px}.design-box p{margin:0 0 14px;color:var(--muted);font-size:11px}.design-grid{display:grid;grid-template-columns:1fr 110px 110px;gap:8px;align-items:center}.design-grid .head{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582}.design-grid select,.design-grid input{min-width:0;width:100%;padding:7px}.design-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.design-actions button{border:0;border-radius:7px;padding:9px 14px;font-weight:800;cursor:pointer}.helpbox{background:#f5f8fa;border:1px solid var(--line);border-radius:9px;padding:10px;margin:10px 0;font-size:10px;color:#556570}.definition{background:#f7fafc;border-left:4px solid var(--blue);padding:9px 11px;border-radius:6px;font-size:10px;color:#596771;margin-bottom:10px}.kpi-note{font-size:8px;opacity:.86;margin-top:5px}.mini-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.mini-kpi{background:#f6f8fa;border:1px solid var(--line);border-radius:8px;padding:10px}.mini-kpi b{font-size:20px;display:block}.mini-kpi span{font-size:9px;color:var(--muted)}.status-good{color:#138653;font-weight:800}.status-bad{color:#c42d3c;font-weight:800}.status-info{color:#1688e8;font-weight:800}.status-warn{color:#a97713;font-weight:800}.maptab{border:1px solid #cbd6de;background:#fff;color:#153246;border-radius:7px;padding:8px 12px;font-weight:800;cursor:pointer}.maptab.active{background:#1688e8;color:#fff;border-color:#1688e8}.route-palette{display:inline-flex;gap:3px;align-items:center;margin-left:2px}.route-palette button{width:17px;height:17px;border:1px solid #fff;outline:1px solid #cbd6de;border-radius:50%;padding:0;cursor:pointer}.route-palette button:hover{transform:scale(1.15)}
 .alertgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}.abox{color:#fff;border-radius:9px;padding:13px}.abox .n{font-size:25px;font-weight:900}.abox .t{font-size:9px;text-transform:uppercase;font-weight:800}.ar{background:#c52d3d}.ao{background:#d87917}.ay{background:#9d7b17}.ag{background:#20835a}
 .scroll{overflow:auto;max-height:500px;border:1px solid var(--line);border-radius:8px}table{border-collapse:collapse;width:100%;font-size:10px}th,td{padding:7px 8px;border-bottom:1px solid #edf0f2;text-align:left;white-space:nowrap}th{background:#f4f7f9;color:#5f6d77;text-transform:uppercase;font-size:9px;position:sticky;top:0;z-index:2}.good{color:#138653;font-weight:800}.bad{color:#c42d3c;font-weight:800}.warn{color:#a97713;font-weight:800}.info{color:#1688e8;font-weight:800}.pill{padding:3px 7px;border-radius:12px;background:#edf2f5;font-weight:800}
 .detailgrid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}.routebox{background:#f6f8fa;border:1px solid var(--line);border-radius:9px;padding:11px}.routebox h4{margin:0 0 7px}.routebox p{font-size:10px;margin:4px 0;color:#596771}
 .footer{padding:16px 2px;color:#77848d;font-size:9px;text-align:center}
 @media(max-width:1250px){.kpis{grid-template-columns:repeat(4,1fr)}.grid{grid-template-columns:repeat(12,minmax(0,1fr))}}
 @media(max-width:750px){.top{height:auto;padding:13px}.clock,.city{display:none}.brand h1{font-size:28px}.grid{grid-template-columns:1fr}.card{grid-column:1/-1!important}.kpis{grid-template-columns:1fr 1fr}.alertgrid{grid-template-columns:1fr 1fr}.detailgrid{grid-template-columns:1fr}.design-grid{grid-template-columns:1fr 90px 90px}}
-</style>
+.route-observation{min-width:420px;max-width:700px;white-space:normal;line-height:1.3;text-align:left;vertical-align:top;overflow-wrap:anywhere}.technical-observation{font-size:10px;color:#334450;font-weight:600}.technical-observation:hover{white-space:normal}.stop-count{font-weight:800;text-align:center}</style>
 </head>
 <body>
 <header class="top">
@@ -456,7 +452,7 @@ label{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582;displ
 <button onclick="page('gps',this)">⌖ Calidad GPS</button>
 </nav>
 
-<div id="designPanel" class="design-panel"><div class="design-box"><h2>⚙ Configuración visual del tablero</h2><p>Organiza la posición, el ancho y la altura de cada panel sin tocar los datos. Los cambios quedan guardados en este navegador.</p><div class="helpbox"><b>Ancho:</b> 25%, 33%, 50%, 67%, 75% o 100% de la fila. <b>Altura:</b> puedes escribir el valor en píxeles. Si un gráfico necesita más espacio, aumenta su ancho o altura.</div><div class="design-grid" id="designGrid"><div class="head">Panel</div><div class="head">Ancho</div><div class="head">Altura (px)</div></div><div class="design-actions"><button onclick="resetDesign()" style="background:#eef2f6;color:#223746">Restablecer diseño</button><button onclick="closeDesign()" style="background:#102a3c;color:#fff">Cerrar</button><button onclick="applyDesign()" style="background:#1688e8;color:#fff">Guardar cambios</button></div></div></div><main class="wrap">
+<div id="designPanel" class="design-panel"><div class="design-box"><h2>⚙ Configuración visual del tablero</h2><p>Modifica el ancho y la altura de cada panel sin tocar los datos. Los cambios son solo de presentación y quedan guardados en este navegador.</p><div class="helpbox"><b>Ancho:</b> 25%, 33%, 50%, 67%, 75% o 100% de la fila. <b>Altura:</b> puedes escribir el valor en píxeles. Si un gráfico necesita más espacio, aumenta su ancho o altura.</div><div class="design-grid" id="designGrid"><div class="head">Panel</div><div class="head">Ancho</div><div class="head">Altura (px)</div></div><div class="design-actions"><button onclick="resetDesign()" style="background:#eef2f6;color:#223746">Restablecer diseño</button><button onclick="closeDesign()" style="background:#102a3c;color:#fff">Cerrar</button><button onclick="applyDesign()" style="background:#1688e8;color:#fff">Guardar cambios</button></div></div></div><main class="wrap">
 <div class="filters">
 <label>Año-Mes<select id="month"><option>Todos</option></select></label>
 <label>Turno<select id="shift"><option>Todos</option><option>DIURNO</option><option>NOCTURNO</option></select></label>
@@ -486,7 +482,6 @@ label{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582;displ
 <div class="card daily-axis-card" data-default-span="4"><h3>Recorridos registrados por día</h3><div class="legend">Cantidad de recorridos registrados en el Excel para cada fecha.</div><div id="dailyChart" class="chart"></div></div>
 <div class="card" data-default-span="6"><h3>Inicios tardíos por técnico</h3><div class="legend">Número de recorridos de cada técnico que comenzaron después de la hora programada.</div><div id="lateChart" class="chart"></div></div>
 <div class="card" data-default-span="6"><h3>Terminaciones anticipadas por técnico</h3><div class="legend">Número de recorridos de cada técnico que finalizaron antes de la hora programada.</div><div id="earlyChart" class="chart"></div></div>
-<div class="card" data-default-span="6"><h3>Kilómetros por técnico</h3><div class="legend">Kilómetros acumulados por técnico según los filtros seleccionados.</div><div id="kmTechChart" class="chart"></div></div>
 <div class="card span3" data-default-span="12"><div style="display:flex;gap:10px;align-items:end;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px"><div><h3 style="margin-bottom:2px">Mapa de recorridos · selección de recorrido</h3><div class="legend" style="margin-top:0">Selecciona un turno o un recorrido específico para visualizar sus puntos de inicio y finalización.</div></div><label style="min-width:360px;flex:1;max-width:700px;text-transform:none">Visualizar recorrido<select id="summaryRouteSelect" onchange="changeSummaryRoute()"><option value="__all__">Todos los recorridos</option></select></label></div><div id="summaryRouteInfo" class="legend" style="margin:0 0 7px;font-weight:700;color:#334450"></div><div id="map1" class="map"></div><div class="legend">● Inicio &nbsp; ● Finalización &nbsp; La selección respeta los filtros superiores. Las coordenadas se toman directamente del Excel maestro.</div></div>
 <div class="card" data-default-span="4"><h3>Distribución por turno</h3><div id="shiftChart" class="chart"></div></div>
 <div class="card" data-default-span="4"><h3>Estado de inicio</h3><div id="startChart" class="chart"></div></div>
@@ -503,7 +498,7 @@ label{font-size:9px;text-transform:uppercase;font-weight:800;color:#667582;displ
 
 <section id="recorridos" class="page">
 <div class="hero"><div><h2>Recorridos</h2><p>Detalle de los registros filtrados.</p></div></div>
-<div class="definition"><b>Detalle de recorridos:</b> aquí se puede revisar registro por registro lo que el sistema tomó del Excel. Los filtros de la parte superior se aplican a esta tabla.</div><div class="card span3"><div class="scroll" style="max-height:650px"><table id="routeTable"></table></div></div>
+<div class="definition"><b>Detalle de recorridos:</b> aquí se revisa registro por registro la información tomada del Excel. <b>OBSERVACIONES TÉCNICAS</b> corresponde exclusivamente a la columna técnica del Excel; no se reemplaza por la columna general de observaciones. Las columnas <b>P ≥10, P ≥15, P ≥30, P ≥40 y P ≥60</b> muestran las paradas detectadas en cada recorrido para cada técnico.</div><div class="card span3"><div class="scroll" style="max-height:650px"><table id="routeTable"></table></div></div>
 </section>
 
 <section id="mapa" class="page">
@@ -576,67 +571,7 @@ function fmt(n){return (+n||0).toLocaleString('es-CO',{maximumFractionDigits:1})
 function filt(){let m=$('month').value,s=$('shift').value,t=$('tech').value,a=$('d1').value,b=$('d2').value,si=$('si').value,sf=$('sf').value;return DATA.filter(r=>(m==='Todos'||String(r['Año-Mes'])===m)&&(s==='Todos'||String(r.Turno)===s)&&(t==='Todos'||String(r['Técnico'])===t)&&(!a||r.Fecha>=a)&&(!b||r.Fecha<=b)&&(si==='Todos'||r['Estado inicio']===si)&&(sf==='Todos'||r['Estado fin']===sf))}
 function setupFilters(kmlMonths=[]){let ms=[...new Set(DATA.map(r=>r['Año-Mes']).filter(Boolean).concat(kmlMonths||[]))].filter(x=>/^\d{4}-\d{2}$/.test(String(x))).sort(),ts=[...new Set(DATA.map(r=>r['Técnico']).filter(Boolean))].sort();$('month').innerHTML='<option>Todos</option>'+ms.map(x=>`<option>${esc(x)}</option>`).join('');$('tech').innerHTML='<option>Todos</option>'+ts.map(x=>`<option>${esc(x)}</option>`).join('');['month','shift','tech','d1','d2','si','sf'].forEach(x=>$(x).onchange=render)}
 function svgBox(id){$(id).innerHTML=''}
-async function copiarGrafica(btn){
- const card=btn.closest('.card');
- const svg=card?.querySelector('svg');
- if(!svg){btn.textContent='Sin gráfica';setTimeout(()=>btn.textContent='COPIAR',1200);return}
- try{
-   const clone=svg.cloneNode(true);
-   const r=svg.getBoundingClientRect();
-   const w=Math.max(300,Math.round(r.width));
-   const h=Math.max(180,Math.round(r.height));
-   clone.setAttribute('width',w);clone.setAttribute('height',h);
-   clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
-   const bg=document.createElementNS('http://www.w3.org/2000/svg','rect');
-   bg.setAttribute('x','0');bg.setAttribute('y','0');bg.setAttribute('width','100%');bg.setAttribute('height','100%');bg.setAttribute('fill','#ffffff');
-   clone.insertBefore(bg,clone.firstChild);
-   const xml='<?xml version="1.0" encoding="UTF-8"?>'+new XMLSerializer().serializeToString(clone);
-   const blob=new Blob([xml],{type:'image/svg+xml;charset=utf-8'});
-   const url=URL.createObjectURL(blob);
-   const img=new Image();
-   img.onload=async()=>{
-     const canvas=document.createElement('canvas');canvas.width=w*2;canvas.height=h*2;
-     const ctx=canvas.getContext('2d');ctx.scale(2,2);ctx.drawImage(img,0,0,w,h);
-     URL.revokeObjectURL(url);
-     canvas.toBlob(async png=>{
-       try{
-         if(navigator.clipboard && window.ClipboardItem){
-           await navigator.clipboard.write([new ClipboardItem({'image/png':png})]);
-           btn.textContent='COPIADA ✓';
-         }else{
-           const ta=document.createElement('textarea');ta.value=xml;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
-           btn.textContent='COPIADA ✓';
-         }
-       }catch(e){
-         btn.textContent='NO PERMITIDO';
-       }
-       setTimeout(()=>btn.textContent='COPIAR',1600);
-     },'image/png');
-   };
-   img.onerror=()=>{URL.revokeObjectURL(url);btn.textContent='ERROR';setTimeout(()=>btn.textContent='COPIAR',1200)};
-   img.src=url;
- }catch(e){
-   btn.textContent='ERROR';setTimeout(()=>btn.textContent='COPIAR',1200);
- }
-}
-function activarBotonesCopiar(){
- document.querySelectorAll('.card .chart').forEach(ch=>{
-   const card=ch.closest('.card'); if(!card)return;
-   if(card.querySelector('.copy-chart-btn'))return;
-   const h=card.querySelector('h3'); if(!h)return;
-   const b=document.createElement('button');b.type='button';b.className='copy-chart-btn';b.textContent='COPIAR';b.title='Copiar esta gráfica como imagen';
-   b.onclick=()=>copiarGrafica(b);h.appendChild(b);
- });
-}
-function bars(id,labels,series,names,max){let el=$(id);if(!el)return;let w=Math.max(el.clientWidth||0,760),h=Math.max(el.clientHeight||0,340),l=55,r=18,t=22,b=72,ph=h-t-b,n=labels.length,g=(w-l-r)/Math.max(1,n),bw=Math.min(28,g*.62/Math.max(1,series.length));let M=max||Math.max(1,...series.flat())*1.15;let s=`<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><g font-family="Segoe UI" font-size="9" fill="#68747e">`;for(let q=0;q<=4;q++){let y=t+ph-q/4*ph;let val=M*q/4;s+=`<line x1="${l}" y1="${y}" x2="${w-r}" y2="${y}" stroke="#e8edf1"/><text x="${l-7}" y="${y+3}" text-anchor="end">${Number(val).toFixed(val%1?1:0)}${max===100?'%':''}</text>`}series.forEach((arr,j)=>arr.forEach((v,i)=>{
- if(v===null || v===undefined || Number.isNaN(Number(v))){
-   let x=l+i*g+g*.18+j*bw;
-   s+=`<text x="${x+(bw-2)/2}" y="${t+ph-8}" text-anchor="middle" fill="#68747e" font-weight="700">N/D</text>`;
-   return;
- }
- let x=l+i*g+g*.18+j*bw,y=t+ph-(v/M)*ph,hh=t+ph-y;
- s+=`<rect x="${x}" y="${y}" width="${Math.max(2,bw-2)}" height="${Math.max(0,hh)}" rx="2" fill="${j?'#f08b25':'#1688e8'}"/><title>${esc(String(labels[i]))}: ${Number(v).toFixed(v%1?1:0)}${max===100?'%':''}</title><text x="${x+(bw-2)/2}" y="${Math.max(12,y-5)}" text-anchor="middle" fill="#334450" font-weight="700">${Number(v).toFixed(v%1?1:0)}${max===100?'%':''}</text>`;
-}));labels.forEach((x,i)=>{let xx=l+i*g+g/2;s+=`<text x="${xx}" y="${h-b+16}" text-anchor="middle" transform="rotate(-28 ${xx} ${h-b+16})">${esc(String(x).slice(0,18))}</text>`});s+='</g></svg>';el.innerHTML=s}
+function bars(id,labels,series,names,max){let el=$(id);if(!el)return;let w=Math.max(el.clientWidth||0,760),h=Math.max(el.clientHeight||0,340),l=55,r=18,t=22,b=72,ph=h-t-b,n=labels.length,g=(w-l-r)/Math.max(1,n),bw=Math.min(28,g*.62/Math.max(1,series.length));let M=max||Math.max(1,...series.flat())*1.15;let s=`<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><g font-family="Segoe UI" font-size="9" fill="#68747e">`;for(let q=0;q<=4;q++){let y=t+ph-q/4*ph;let val=M*q/4;s+=`<line x1="${l}" y1="${y}" x2="${w-r}" y2="${y}" stroke="#e8edf1"/><text x="${l-7}" y="${y+3}" text-anchor="end">${Number(val).toFixed(val%1?1:0)}${max===100?'%':''}</text>`}series.forEach((arr,j)=>arr.forEach((v,i)=>{let x=l+i*g+g*.18+j*bw,y=t+ph-(v/M)*ph,hh=t+ph-y;s+=`<rect x="${x}" y="${y}" width="${Math.max(2,bw-2)}" height="${Math.max(0,hh)}" rx="2" fill="${j?'#f08b25':'#1688e8'}"/><title>${esc(String(labels[i]))}: ${Number(v).toFixed(v%1?1:0)}${max===100?'%':''}</title><text x="${x+(bw-2)/2}" y="${Math.max(12,y-5)}" text-anchor="middle" fill="#334450" font-weight="700">${Number(v).toFixed(v%1?1:0)}${max===100?'%':''}</text>`}));labels.forEach((x,i)=>{let xx=l+i*g+g/2;s+=`<text x="${xx}" y="${h-b+16}" text-anchor="middle" transform="rotate(-28 ${xx} ${h-b+16})">${esc(String(x).slice(0,18))}</text>`});s+='</g></svg>';el.innerHTML=s}
 function hbars(id,labels,vals,color='#1688e8'){let el=$(id);if(!el)return;let w=Math.max(el.clientWidth||0,700),h=Math.max(el.clientHeight||0,340),l=155,r=55,t=12,b=15,row=Math.max(24,(h-t-b)/Math.max(1,labels.length)),M=Math.max(1,...vals)*1.12;let s=`<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><g font-family="Segoe UI" font-size="9">`;labels.forEach((lab,i)=>{let y=t+i*row+4,bw=(w-l-r)*(vals[i]/M);s+=`<text x="${l-8}" y="${y+10}" text-anchor="end" fill="#68747e">${esc(String(lab).slice(0,24))}</text><rect x="${l}" y="${y}" width="${Math.max(2,bw)}" height="15" rx="3" fill="${color}"/><text x="${Math.min(w-r+2,l+bw+6)}" y="${y+11}" fill="#334450" font-weight="700">${Number(vals[i]).toFixed(vals[i]%1?1:0)}</text>`});s+='</g></svg>';el.innerHTML=s}
 function timeHbars(id,labels,vals){let el=$(id);if(!el)return;let w=Math.max(el.clientWidth||0,760),h=Math.max(el.clientHeight||0,340),l=175,r=85,t=12,b=15,row=Math.max(24,(h-t-b)/Math.max(1,labels.length)),M=Math.max(1,...vals)*1.12;let s=`<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"><g font-family="Segoe UI" font-size="9">`;labels.forEach((lab,i)=>{let y=t+i*row+4,bw=(w-l-r)*(vals[i]/M);s+=`<text x="${l-8}" y="${y+10}" text-anchor="end" fill="#68747e">${esc(String(lab).slice(0,24))}</text><rect x="${l}" y="${y}" width="${Math.max(2,bw)}" height="15" rx="3" fill="#df3f4f"/><text x="${Math.min(w-r+2,l+bw+6)}" y="${y+11}" fill="#334450" font-weight="700">${secFmt(vals[i])}</text>`});s+='</g></svg>';el.innerHTML=s}
 function lineChart(id,labels,vals){let el=$(id);if(!el)return;let w=Math.max(el.clientWidth||0,760),h=Math.max(el.clientHeight||0,350),l=52,r=18,t=24,b=88,ph=h-t-b,M=Math.max(1,...vals),step=(w-l-r)/Math.max(1,vals.length-1);let fmtDay=v=>{let x=String(v??'').trim();let m=x.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);if(m)return String(m[3]).padStart(2,'0')+'/'+String(m[2]).padStart(2,'0');m=x.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);if(m)return String(m[1]).padStart(2,'0')+'/'+String(m[2]).padStart(2,'0');let d=new Date(x);if(!isNaN(d))return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');return x};let pts=vals.map((v,i)=>`${l+i*step},${t+ph-v/M*ph}`).join(' ');let s=`<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}"><g font-family="Segoe UI" font-size="10" fill="#68747e"><line x1="${l}" y1="${t+ph}" x2="${w-r}" y2="${t+ph}" stroke="#ccd5dc"/><polyline points="${pts}" fill="none" stroke="#1688e8" stroke-width="3"/>`;vals.forEach((v,i)=>{let x=l+i*step,y=t+ph-v/M*ph,lab=fmtDay(labels[i]);let dailyLabel=(id==='dailyChart'||id==='daily2');let ly=dailyLabel?h-34:h-18;let transform=dailyLabel?'':' transform="rotate(-35 '+x+' '+ly+')"';s+=`<line x1="${x}" y1="${t+ph}" x2="${x}" y2="${t+ph+6}" stroke="#aeb9c2"/><circle cx="${x}" cy="${y}" r="4" fill="#1688e8"/><text x="${x}" y="${y-9}" text-anchor="middle" fill="#334450" font-weight="700">${v}</text><text x="${x}" y="${ly}" text-anchor="middle" fill="#334450" font-size="10" font-weight="700"${transform}>${esc(lab)}</text>`});s+=`<text x="${(l+w-r)/2}" y="${h-2}" text-anchor="middle" font-size="10" font-weight="700" fill="#596771">Día</text><text x="14" y="${t+ph/2}" text-anchor="middle" font-size="10" font-weight="700" fill="#596771" transform="rotate(-90 14 ${t+ph/2})">Recorridos</text></g></svg>`;el.innerHTML=s}
@@ -655,106 +590,15 @@ function showMapTab(tab,b){
 }
 function page(id,b){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');setTimeout(()=>{[map1,map2,mapDiurno,mapNocturno].forEach(m=>{if(m)m.invalidateSize(true)});if(id==='mapa'){if(map2)updateMap(map2,filt(),layers2);refreshMonthlyMap()}if(id==='resumen'&&map1)changeSummaryRoute();render()},180)}
 
-function panelCards(){return [...document.querySelectorAll('#resumen .grid .card')];}
+function panelCards(){return [...document.querySelectorAll('.grid .card')];}
 function spanToPct(span){return ({3:'25%',4:'33%',6:'50%',8:'67%',9:'75%',12:'100%'})[span]||'50%'}
 function pctToSpan(v){return ({'25%':3,'33%':4,'50%':6,'67%':8,'75%':9,'100%':12})[v]||6}
-function panelKey(c){return String(c.querySelector('h3')?.textContent||'').replace(/COPIAR/g,'').trim()||'Panel'}
-function panelDimKey(c){return 'spro26-panel-dim-'+encodeURIComponent(panelKey(c))}
-function summaryLayout(){
- const cards=panelCards();
- return cards.map((c,i)=>({key:panelKey(c),pos:i}));
-}
-function savePanelLayout(){
- localStorage.setItem('spro26-resumen-order',JSON.stringify(summaryLayout()));
-}
-function restorePanelLayout(){
- const raw=localStorage.getItem('spro26-resumen-order');
- if(!raw)return;
- try{
-   const order=JSON.parse(raw);
-   const grids=[...document.querySelectorAll('#resumen .grid')];
-   const cards=new Map(panelCards().map(c=>[panelKey(c),c]));
-   order.sort((a,b)=>a.pos-b.pos).forEach(item=>{
-     const c=cards.get(item.key);
-     if(c) {
-       // Rebuild the complete Resumen order in the first grid.
-       const g=grids[0];
-       if(g) g.appendChild(c);
-     }
-   });
- }catch(e){}
-}
-function moveDesignPanel(c,dir){
- const cards=panelCards();
- const i=cards.indexOf(c);
- if(i<0)return;
- const newIndex=i+dir;
- if(newIndex<0 || newIndex>=cards.length)return;
-
- // Use one common Resumen container so position 1 is truly position 1.
- const target=cards[newIndex];
- const g=target.closest('.grid');
- if(!g)return;
-
- if(dir<0) {
-   g.insertBefore(c,target);
- } else {
-   g.insertBefore(c,target.nextSibling);
- }
- savePanelLayout();
- openDesign();
-}
-function openDesign(){
- const grid=$('designGrid');
- grid.innerHTML='<div class="head">PANEL</div><div class="head">POSICIÓN</div><div class="head">ANCHO</div><div class="head">ALTURA (PX)</div>';
- const cards=panelCards();
- cards.forEach((c,i)=>{
-   const id='p'+i;c.dataset.pid=id;
-   const title=panelKey(c);
-   const span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2'))?'8':'6');
-   let saved=null;
-   try{saved=JSON.parse(localStorage.getItem(panelDimKey(c))||localStorage.getItem('spro26-'+id)||'null')}catch(e){}
-   const pct=saved?.pct||spanToPct(span);
-   const h=saved?.h||parseInt(getComputedStyle(c).minHeight)||320;
-   const pos=i+1;
-   grid.insertAdjacentHTML('beforeend',
-     `<div><b>${esc(title)}</b></div>`+
-     `<div class="design-move"><button type="button" title="Subir" aria-label="Subir">↑</button><span class="design-pos">${pos}</span><button type="button" title="Bajar" aria-label="Bajar">↓</button></div>`+
-     `<select id="dw-${id}"><option ${pct==='25%'?'selected':''}>25%</option><option ${pct==='33%'?'selected':''}>33%</option><option ${pct==='50%'?'selected':''}>50%</option><option ${pct==='67%'?'selected':''}>67%</option><option ${pct==='75%'?'selected':''}>75%</option><option ${pct==='100%'?'selected':''}>100%</option></select>`+
-     `<input id="dh-${id}" type="number" min="280" max="900" step="10" value="${h}">`
-   );
-   const row=[...grid.children].slice(-4);
-   row[1].querySelectorAll('button')[0].onclick=()=>moveDesignPanel(c,-1);
-   row[1].querySelectorAll('button')[1].onclick=()=>moveDesignPanel(c,1);
- });
- $('designPanel').classList.add('open');
-}
-function applyDesign(){
- panelCards().forEach((c,i)=>{
-   const id=c.dataset.pid||'p'+i;
-   const pct=$(('dw-'+id)).value;
-   const h=Math.max(280,Math.min(900,Number($(('dh-'+id)).value)||320));
-   c.style.gridColumn=`span ${pctToSpan(pct)}`;
-   c.style.height=h+'px';
-   localStorage.setItem(panelDimKey(c),JSON.stringify({pct,h}));
-   localStorage.setItem('spro26-'+id,JSON.stringify({pct,h}));
- });
- savePanelLayout();
- closeDesign();
- setTimeout(()=>{render();[map1,map2,mapDiurno,mapNocturno].forEach(m=>{if(m)m.invalidateSize(true)})},100);
-}
+function openDesign(){let grid=$('designGrid');grid.innerHTML='<div class="head">Panel</div><div class="head">Ancho</div><div class="head">Altura (px)</div>';panelCards().forEach((c,i)=>{let id='p'+i;c.dataset.pid=id;let title=c.querySelector('h3')?.textContent||('Panel '+(i+1));let span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2')?'8':'6'));let saved=null;try{saved=JSON.parse(localStorage.getItem('spro26-'+id)||'null')}catch(e){saved=null}let pct=saved?.pct||spanToPct(span);let h=saved?.h||parseInt(getComputedStyle(c).minHeight)||320;grid.insertAdjacentHTML('beforeend',`<div><b>${esc(title)}</b></div><select id="dw-${id}"><option ${pct==='25%'?'selected':''}>25%</option><option ${pct==='33%'?'selected':''}>33%</option><option ${pct==='50%'?'selected':''}>50%</option><option ${pct==='67%'?'selected':''}>67%</option><option ${pct==='75%'?'selected':''}>75%</option><option ${pct==='100%'?'selected':''}>100%</option></select><input id="dh-${id}" type="number" min="280" max="900" step="10" value="${h}">`)});$('designPanel').classList.add('open')}
+function applyDesign(){panelCards().forEach((c,i)=>{let id=c.dataset.pid||'p'+i;let pct=$(('dw-'+id)).value;let h=Math.max(280,Math.min(900,Number($(('dh-'+id)).value)||320));c.style.gridColumn=`span ${pctToSpan(pct)}`;c.style.height=h+'px';localStorage.setItem('spro26-'+id,JSON.stringify({pct,h}))});closeDesign();setTimeout(()=>{render();[map1,map2,mapDiurno,mapNocturno].forEach(m=>{if(m)m.invalidateSize(true)})},100)}
+function resetDesign(){Object.keys(localStorage).filter(k=>k.indexOf('spro26-')===0).forEach(k=>localStorage.removeItem(k));panelCards().forEach((c,i)=>{let span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2')?'8':'6'));c.style.height='';c.style.gridColumn=`span ${span}`});openDesign()}
 function closeDesign(){$('designPanel').classList.remove('open')}
-function restoreDesign(){
- restorePanelLayout();
- panelCards().forEach((c,i)=>{
-   const id='p'+i;c.dataset.pid=id;
-   let saved=null;
-   try{saved=JSON.parse(localStorage.getItem(panelDimKey(c))||localStorage.getItem('spro26-'+id)||'null')}catch(e){}
-   const span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2'))?'8':'6');
-   if(saved){c.style.gridColumn=`span ${pctToSpan(saved.pct)}`;c.style.height=saved.h+'px'}
-   else c.style.gridColumn=`span ${span}`;
- });
-}function resetF(){['month','shift','tech','si','sf'].forEach(x=>$(x).value='Todos');$('d1').value='';$('d2').value='';render()}
+function restoreDesign(){panelCards().forEach((c,i)=>{let id='p'+i;c.dataset.pid=id;let saved=null;try{saved=JSON.parse(localStorage.getItem('spro26-'+id)||'null')}catch(e){saved=null}let span=c.dataset.defaultSpan||((c.classList.contains('span3'))?'12':(c.classList.contains('span2')?'8':'6'));if(saved){c.style.gridColumn=`span ${pctToSpan(saved.pct)}`;c.style.height=saved.h+'px'}else c.style.gridColumn=`span ${span}`})}
+function resetF(){['month','shift','tech','si','sf'].forEach(x=>$(x).value='Todos');$('d1').value='';$('d2').value='';render()}
 function initMap(id){let el=$(id);el.style.minHeight='450px';let m=L.map(id,{preferCanvas:true,zoomControl:true}).setView([6.2442,-75.5812],11);let sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Tiles © Esri'}).addTo(m);let calles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'});L.control.layers({'Satélite':sat,'Calles':calles},null,{collapsed:true,position:'topright'}).addTo(m);setTimeout(()=>m.invalidateSize(true),250);return m;}
 function updateMap(m,d,layers){layers.forEach(x=>m.removeLayer(x));layers.length=0;let pts=[];d.forEach((r,i)=>{let la=+r.LatIni,lo=+r.LonIni,laf=+r.LatFin,lof=+r.LonFin;if(Number.isFinite(la)&&Number.isFinite(lo)){let mk=L.circleMarker([la,lo],{radius:6,color:'#1688e8',fillColor:'#1688e8',fillOpacity:.9}).bindPopup(`<b>INICIO</b><br>${esc(r.Fecha)} · ${esc(r['Técnico'])}<br>${esc(r.Turno)}<br>${esc(r['Archivo'])}<br>Lat: ${la.toFixed(6)}<br>Lon: ${lo.toFixed(6)}`);mk.addTo(m);layers.push(mk);pts.push([la,lo])}if(Number.isFinite(laf)&&Number.isFinite(lof)){let mk=L.circleMarker([laf,lof],{radius:6,color:'#df3f4f',fillColor:'#df3f4f',fillOpacity:.9}).bindPopup(`<b>FINALIZACIÓN</b><br>${esc(r.Fecha)} · ${esc(r['Técnico'])}<br>${esc(r.Turno)}<br>${esc(r['Archivo'])}<br>Lat: ${laf.toFixed(6)}<br>Lon: ${lof.toFixed(6)}`);mk.addTo(m);layers.push(mk);pts.push([laf,lof])}if(Number.isFinite(la)&&Number.isFinite(lo)&&Number.isFinite(laf)&&Number.isFinite(lof)){let ln=L.polyline([[la,lo],[laf,lof]],{color:'#1688e8',weight:1,opacity:.35,dashArray:'4 4'}).addTo(m);layers.push(ln)}});if(pts.length)m.fitBounds(pts,{padding:[20,20],maxZoom:13})}
 function summaryRouteKey(r){return String(r['Archivo']||'')+'|'+String(r.Fecha||'')+'|'+String(r['Técnico']||'')+'|'+String(r.Turno||'')}
@@ -845,23 +689,19 @@ let km=d.reduce((a,r)=>a+(+r.Kilómetros||0),0),gpsN=d.reduce((a,r)=>a+(+r['Huec
 $('k1').textContent=d.length;$('k2').textContent=fmt(km);$('k3').textContent=pct(sok,sa.length);$('k4').textContent=pct(eok,ea.length);$('k5').textContent=late.length;$('k6').textContent=early.length;$('k7').textContent=Math.round(gpsN);$('k8').textContent=secFmt(dev);
 $('a1').textContent=late.length;$('a2').textContent=early.length;$('a3').textContent=Math.round(gpsN);$('a4').textContent=rev.length;$('gm1').textContent=Math.round(gpsN);$('gm2').textContent=gps.length;$('gm3').textContent=pct(gps.length,d.length);$('fstatus').textContent=`${d.length} recorridos · ${new Set(d.map(r=>r['Técnico'])).size} técnicos`;
 let by={};d.forEach(r=>{let t=r['Técnico']||'Sin técnico';if(!by[t])by[t]={n:0,km:0,late:0,early:0,gps:0,okS:0,avS:0,okE:0,avE:0,dev:0};let x=by[t];x.n++;x.km+=+r.Kilómetros||0;x.gps+=+r['Huecos GPS >=10 min']||0;if(!['NO DISPONIBLE','REVISAR','REVISAR GPX'].includes(r['Estado inicio'])){x.avS++;if(['INICIO CUMPLE','INICIO ANTES DEL HORARIO'].includes(r['Estado inicio']))x.okS++}if(!['NO DISPONIBLE','REVISAR','REVISAR GPX'].includes(r['Estado fin'])){x.avE++;if(['FIN CUMPLE','TERMINÓ DESPUÉS'].includes(r['Estado fin']))x.okE++}if(r['Estado inicio']==='INICIO TARDÍO'){x.late++;x.dev+=+r.DifIniSec||0}if(r['Estado fin']==='TERMINÓ ANTES'){x.early++;x.dev+=+r.DifFinSec||0}});
-let names=Object.keys(by);
-let startPct=names.map(t=>by[t].avS?100*by[t].okS/by[t].avS:null);
-let endPct=names.map(t=>by[t].avE?100*by[t].okE/by[t].avE:null);
-bars('techChart',names,[startPct,endPct],['Inicio','Fin'],100);hbars('lateChart',names.slice().sort((a,b)=>by[b].late-by[a].late),names.slice().sort((a,b)=>by[b].late-by[a].late).map(t=>by[t].late),'#df3f4f');hbars('earlyChart',names.slice().sort((a,b)=>by[b].early-by[a].early),names.slice().sort((a,b)=>by[b].early-by[a].early).map(t=>by[t].early),'#f08b25');
-let kmNames=names.slice().sort((a,b)=>by[b].km-by[a].km);hbars('kmTechChart',kmNames,kmNames.map(t=>by[t].km),'#1688e8');
+let names=Object.keys(by);bars('techChart',names,[names.map(t=>by[t].avS?100*by[t].okS/by[t].avS:0),names.map(t=>by[t].avE?100*by[t].okE/by[t].avE:0)],['Inicio','Fin'],100);hbars('lateChart',names.slice().sort((a,b)=>by[b].late-by[a].late),names.slice().sort((a,b)=>by[b].late-by[a].late).map(t=>by[t].late),'#df3f4f');hbars('earlyChart',names.slice().sort((a,b)=>by[b].early-by[a].early),names.slice().sort((a,b)=>by[b].early-by[a].early).map(t=>by[t].early),'#f08b25');
 let daily={};d.forEach(r=>daily[r.Fecha]=(daily[r.Fecha]||0)+1);let dates=Object.keys(daily).sort();lineChart('dailyChart',dates,dates.map(x=>daily[x]));lineChart('daily2',dates,dates.map(x=>daily[x]));
 donut('shiftChart',['DIURNO','NOCTURNO'],['DIURNO','NOCTURNO'].map(x=>d.filter(r=>r.Turno===x).length));
 let ss={};d.forEach(r=>ss[r['Estado inicio']||'SIN DATO']=(ss[r['Estado inicio']||'SIN DATO']||0)+1);donut('startChart',Object.keys(ss),Object.values(ss));
 let es={};d.forEach(r=>es[r['Estado fin']||'SIN DATO']=(es[r['Estado fin']||'SIN DATO']||0)+1);donut('endChart',Object.keys(es),Object.values(es));
 let st=names.slice().sort((a,b)=>by[b].km-by[a].km);let th='<thead><tr><th>#</th><th>Técnico</th><th>Recorridos</th><th>Km</th><th>% Inicio</th><th>% Fin</th><th>Tardíos</th><th>Terminó antes</th><th>GPS</th><th>Desviación</th></tr></thead><tbody>';st.forEach((t,i)=>{let x=by[t];th+=`<tr><td>${i+1}</td><td><b>${esc(t)}</b></td><td>${x.n}</td><td>${x.km.toFixed(1)}</td><td class="${x.okS<x.avS*.8?'bad':'good'}">${pct(x.okS,x.avS)}</td><td class="${x.okE<x.avE*.8?'bad':'good'}">${pct(x.okE,x.avE)}</td><td class="${x.late?'bad':'good'}">${x.late}</td><td class="${x.early?'bad':'good'}">${x.early}</td><td class="${x.gps?'warn':'good'}">${x.gps}</td><td>${secFmt(x.dev)}</td></tr>`});$('rankTable').innerHTML=th+'</tbody>';$('techTable').innerHTML=th+'</tbody>';
 let ah='<thead><tr><th>Fecha</th><th>Técnico</th><th>Turno</th><th>Archivo</th><th>Inicio</th><th>Fin</th><th>GPS</th><th>Estado</th><th>Prioridad</th><th>Qué verificar</th></tr></thead><tbody>';let alerts=d.filter(r=>r['Estado inicio']==='INICIO TARDÍO'||r['Estado fin']==='TERMINÓ ANTES'||(+r['Huecos GPS >=10 min']||0)>0||String(r['Estado recorrido']||'').includes('REVISAR')).sort((a,b)=>String(b.Fecha).localeCompare(String(a.Fecha)));alerts.forEach(r=>{let si=String(r['Estado inicio']||''),sf=String(r['Estado fin']||''),sr=String(r['Estado recorrido']||''),g=+r['Huecos GPS >=10 min']||0;let ci=si==='INICIO CUMPLE'?'good':si==='INICIO ANTES DEL HORARIO'?'info':si==='INICIO TARDÍO'?'bad':'warn';let cf=sf==='FIN CUMPLE'?'good':sf==='TERMINÓ DESPUÉS'?'info':sf==='TERMINÓ ANTES'?'bad':'warn';let cg=g>0?'warn':'good';let reasons=[];if(si==='INICIO TARDÍO')reasons.push('Verificar hora real de inicio');if(sf==='TERMINÓ ANTES')reasons.push('Verificar finalización anticipada');if(g>0)reasons.push('Revisar continuidad GPS');if(sr.includes('REVISAR'))reasons.push('Revisar GPX/registro');let pr=(si==='INICIO TARDÍO'||sf==='TERMINÓ ANTES')?'ALTA':(g>0||sr.includes('REVISAR')?'MEDIA':'BAJA');let pc=pr==='ALTA'?'bad':pr==='MEDIA'?'warn':'good';ah+=`<tr><td>${r.Fecha||''}</td><td>${esc(r['Técnico'])}</td><td>${r.Turno||''}</td><td>${esc(r.Archivo)}</td><td class="${ci}">${esc(si||'SIN DATO')}</td><td class="${cf}">${esc(sf||'SIN DATO')}</td><td class="${cg}">${g}</td><td>${esc(sr)}</td><td class="${pc}">${pr}</td><td>${esc(reasons.join(' · ')||'Revisión general')}</td></tr>`});$('alertTable').innerHTML=ah+'</tbody>';$('recentTable').innerHTML=ah+'</tbody>';
-let rh='<thead><tr><th>Fecha</th><th>Técnico</th><th>Turno</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Km</th><th>Vel.</th><th>Estado inicio</th><th>Estado fin</th><th>Estado recorrido</th></tr></thead><tbody>';d.slice().sort((a,b)=>String(b.Fecha).localeCompare(String(a.Fecha))).forEach(r=>{let si=String(r['Estado inicio']||''),sf=String(r['Estado fin']||''),sr=String(r['Estado recorrido']||'');let ci=si==='INICIO CUMPLE'?'good':si==='INICIO ANTES DEL HORARIO'?'info':si==='INICIO TARDÍO'?'bad':'warn';let cf=sf==='FIN CUMPLE'?'good':sf==='TERMINÓ DESPUÉS'?'info':sf==='TERMINÓ ANTES'?'bad':'warn';let ce=sr==='DENTRO DE HORARIO'?'good':sr.includes('ANTICIPADO')?'bad':sr.includes('POSTERIOR')?'info':sr.includes('REVISAR')?'warn':'warn';rh+=`<tr><td>${r.Fecha||''}</td><td>${esc(r['Técnico'])}</td><td>${r.Turno||''}</td><td>${esc(r['Inicio Colombia'])}</td><td>${esc(r['Fin Colombia'])}</td><td>${esc(r.Duración)}</td><td>${(+r.Kilómetros||0).toFixed(1)}</td><td>${(+r['Velocidad promedio (km/h)']||0).toFixed(1)}</td><td class="${ci}">${esc(si)}</td><td class="${cf}">${esc(sf)}</td><td class="${ce}">${esc(sr)}</td></tr>`});$('routeTable').innerHTML=rh+'</tbody>';
+let rh='<thead><tr><th>Fecha</th><th>Técnico</th><th>Turno</th><th>Inicio</th><th>Fin</th><th>Duración</th><th>Km</th><th>Vel.</th><th>Estado inicio</th><th>Estado fin</th><th>Estado recorrido</th><th>P ≥10</th><th>P ≥15</th><th>P ≥30</th><th>P ≥40</th><th>P ≥60</th><th>OBSERVACIONES TÉCNICAS</th></tr></thead><tbody>';d.slice().sort((a,b)=>String(b.Fecha).localeCompare(String(a.Fecha))).forEach(r=>{let si=String(r['Estado inicio']||''),sf=String(r['Estado fin']||''),sr=String(r['Estado recorrido']||''),obsTec=String(r['ObservacionesTecnicas']||'');let ci=si==='INICIO CUMPLE'?'good':si==='INICIO ANTES DEL HORARIO'?'info':si==='INICIO TARDÍO'?'bad':'warn';let cf=sf==='FIN CUMPLE'?'good':sf==='TERMINÓ DESPUÉS'?'info':sf==='TERMINÓ ANTES'?'bad':'warn';let ce=sr==='DENTRO DE HORARIO'?'good':sr.includes('ANTICIPADO')?'bad':sr.includes('POSTERIOR')?'info':sr.includes('REVISAR')?'warn':'warn';let p10=+r.Paradas10||0,p15=+r.Paradas15||0,p30=+r.Paradas30||0,p40=+r.Paradas40||0,p60=+r.Paradas60||0;rh+=`<tr><td>${r.Fecha||''}</td><td>${esc(r['Técnico'])}</td><td>${r.Turno||''}</td><td>${esc(r['Inicio Colombia'])}</td><td>${esc(r['Fin Colombia'])}</td><td>${esc(r.Duración)}</td><td>${(+r.Kilómetros||0).toFixed(1)}</td><td>${(+r['Velocidad promedio (km/h)']||0).toFixed(1)}</td><td class="${ci}">${esc(si)}</td><td class="${cf}">${esc(sf)}</td><td class="${ce}">${esc(sr)}</td><td>${p10}</td><td>${p15}</td><td>${p30}</td><td>${p40}</td><td>${p60}</td><td class="route-observation technical-observation" title="${esc(obsTec)}">${esc(obsTec||'Sin observación técnica')}</td></tr>`});$('routeTable').innerHTML=rh+'</tbody>';
 let gt={};d.forEach(r=>{let t=r['Técnico']||'Sin técnico';gt[t]=(gt[t]||0)+(+r['Huecos GPS >=10 min']||0)});let gn=Object.keys(gt).sort((a,b)=>gt[b]-gt[a]);hbars('gpsChart',gn,gn.map(x=>gt[x]),'#7135c8');let aff={};d.forEach(r=>{if((+r['Huecos GPS >=10 min']||0)>0){let t=r['Técnico']||'Sin técnico';aff[t]=(aff[t]||0)+1}});let an=Object.keys(aff).sort((a,b)=>aff[b]-aff[a]);hbars('gpsRoutes',an,an.map(x=>aff[x]),'#1688e8');timeHbars('devChart',names,names.map(t=>by[t].dev));let sh={};d.forEach(r=>{let h=String(r['Inicio Colombia']||'').slice(0,2);if(h)sh[h]=(sh[h]||0)+1});let sn=Object.keys(sh).sort();bars('startHour',sn,[sn.map(x=>sh[x])]);let eh={};d.forEach(r=>{let h=String(r['Fin Colombia']||'').slice(0,2);if(h)eh[h]=(eh[h]||0)+1});let en=Object.keys(eh).sort();bars('endHour',en,[en.map(x=>eh[x])]);
 if(map1)changeSummaryRoute();if(map2)updateMap(map2,d,layers2);$('kmld3').textContent=d.length;if(document.getElementById('mapa')?.classList.contains('active'))refreshMonthlyMap();
 }
 function clock(){let d=new Date();$('date').textContent=d.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});$('time').textContent=d.toLocaleTimeString('es-CO',{hour12:false})}
-async function load(){try{let r=await fetch('/api/data?x='+Date.now()),j=await r.json();if(j.error)throw Error(j.error);if(j.stamp!==lastStamp){let keep={m:$('month').value,t:$('tech').value,s:$('shift').value,a:$('d1').value,b:$('d2').value,si:$('si').value,sf:$('sf').value};DATA=j.rows;lastStamp=j.stamp;setupFilters(j.kml_months||[]);$('month').value=keep.m;$('tech').value=keep.t;$('shift').value=keep.s;$('d1').value=keep.a;$('d2').value=keep.b;$('si').value=keep.si;$('sf').value=keep.sf;render()}$('live').textContent='● Excel conectado · '+j.updated}catch(e){$('live').textContent='● Error leyendo Excel: '+String(e.message||e).slice(0,80)}}clock();setInterval(clock,1000);setInterval(load,5000);setTimeout(()=>{map1=initMap('map1');map2=initMap('map2');mapDiurno=initMap('mapDiurno');mapNocturno=initMap('mapNocturno');setTimeout(()=>{activarBotonesCopiar();restoreDesign();restoreRouteColors();[map1,map2,mapDiurno,mapNocturno].forEach(m=>{if(m)m.invalidateSize(true)});render()},350)},350);load();
+async function load(){try{let r=await fetch('/api/data?x='+Date.now()),j=await r.json();if(j.error)throw Error(j.error);if(j.stamp!==lastStamp){let keep={m:$('month').value,t:$('tech').value,s:$('shift').value,a:$('d1').value,b:$('d2').value,si:$('si').value,sf:$('sf').value};DATA=j.rows;lastStamp=j.stamp;setupFilters(j.kml_months||[]);$('month').value=keep.m;$('tech').value=keep.t;$('shift').value=keep.s;$('d1').value=keep.a;$('d2').value=keep.b;$('si').value=keep.si;$('sf').value=keep.sf;render()}$('live').textContent='● Excel conectado · '+j.updated}catch(e){$('live').textContent='● Error leyendo Excel: '+String(e.message||e).slice(0,80)}}clock();setInterval(clock,1000);setInterval(load,5000);setTimeout(()=>{map1=initMap('map1');map2=initMap('map2');mapDiurno=initMap('mapDiurno');mapNocturno=initMap('mapNocturno');setTimeout(()=>{restoreDesign();restoreRouteColors();[map1,map2,mapDiurno,mapNocturno].forEach(m=>{if(m)m.invalidateSize(true)});render()},350)},350);load();
 </script>
 </body></html>
 """
@@ -911,8 +751,8 @@ def drive_sync_loop():
         time.sleep(max(10, DRIVE_SYNC_SECONDS))
 
 def read_excel():
-    # En Render el Excel ya viene publicado junto con el código.
-    # No se intenta descargar ni reemplazar desde Google Drive.
+    if RENDER_MODE:
+        sync_drive_excel()
     if not os.path.exists(EXCEL_PATH):
         raise FileNotFoundError(EXCEL_PATH)
     try:
@@ -927,9 +767,64 @@ def read_excel():
         headers=[str(x).strip() if x is not None else "" for x in rows[0]]
         df=pd.DataFrame(rows[1:],columns=headers)
         wb.close()
+    # Columnas obligatorias para el tablero. NO usamos "Observaciones" como
+    # observación técnica: la observación técnica debe venir de la columna
+    # específica del Excel (por ejemplo "OBSERVACIONES TECNICAS").
     required=["Fecha","Año-Mes","Técnico","Turno","Inicio Colombia","Fin Colombia","Diferencia inicio","Diferencia fin","Estado inicio","Estado fin","Kilómetros","Velocidad promedio (km/h)","Huecos GPS >=10 min","Estado recorrido","Duración","Archivo"]
     missing=[c for c in required if c not in df.columns]
     if missing: raise ValueError("Faltan columnas en RECORRIDOS: "+", ".join(missing))
+
+    # Busca columnas por nombre normalizado (acentos, mayúsculas y espacios).
+    # Esto permite leer "OBSERVACIONES TECNICAS", "OBSERVACIONES TÉCNICAS",
+    # "Observación técnica", etc., sin depender de la posición AN del Excel.
+    import unicodedata
+    def norm_col(v):
+        v="" if v is None else str(v)
+        v=unicodedata.normalize("NFKD",v).encode("ascii","ignore").decode("ascii")
+        return " ".join(v.upper().replace("_"," ").split())
+
+    normalized={norm_col(c):c for c in df.columns}
+
+    def find_col(candidates):
+        for cand in candidates:
+            nc=norm_col(cand)
+            if nc in normalized:
+                return normalized[nc]
+        # coincidencia flexible para variantes como "OBSERVACIONES TECNICAS DEL RECORRIDO"
+        for nc,c in normalized.items():
+            if all(part in nc for part in ["OBSERVACION","TECNIC"]):
+                return c
+        return None
+
+    obs_tec_col=find_col([
+        "OBSERVACIONES TECNICAS",
+        "OBSERVACIÓN TÉCNICA",
+        "OBSERVACIONES TÉCNICAS",
+        "OBSERVACION TECNICA",
+        "OBSERVACIONES DEL TECNICO",
+        "OBSERVACIÓN DEL TÉCNICO",
+        "OBSERVACIONES DEL RECORRIDO TECNICAS"
+    ])
+
+    # Las paradas se conservan exactamente por recorrido y por técnico.
+    stop_cols={}
+    for key, candidates in {
+        "Paradas10":["Paradas >=10 min","Paradas >= 10 min","Paradas 10 min"],
+        "Paradas15":["Paradas >=15 min","Paradas >= 15 min","Paradas 15 min"],
+        "Paradas30":["Paradas >=30 min","Paradas >= 30 min","Paradas 30 min"],
+        "Paradas40":["Paradas >=40 min","Paradas >= 40 min","Paradas 40 min"],
+        "Paradas60":["Paradas >=60 min","Paradas >= 60 min","Paradas 60 min"]
+    }.items():
+        stop_cols[key]=find_col(candidates)
+
+    # Exponemos campos canónicos al HTML. Si la columna técnica no existe,
+    # dejamos el campo vacío; jamás sustituimos la observación técnica por
+    # "Observaciones", porque son datos diferentes.
+    df["ObservacionesTecnicas"]=df[obs_tec_col].fillna("").astype(str) if obs_tec_col else ""
+    for key,col in stop_cols.items():
+        df[key]=pd.to_numeric(df[col],errors="coerce").fillna(0) if col else 0
+    df["ColumnaObservacionesTecnicas"]=obs_tec_col or ""
+
     # Coordenadas: acepta nombres usados por las versiones anteriores del sistema.
     def coord_col(cands):
         for c in cands:
@@ -943,17 +838,7 @@ def read_excel():
         df[name]=pd.to_numeric(df[col],errors="coerce") if col else float("nan")
     dt=pd.to_datetime(df["Fecha"],dayfirst=True,errors="coerce")
     df["Fecha"]=dt.dt.strftime("%Y-%m-%d")
-    # Normalización de textos: elimina espacios/saltos de línea que pueden
-    # hacer que estados como "INICIO CUMPLE " no coincidan con el cálculo.
-    for c in ["Año-Mes","Técnico","Turno","Estado inicio","Estado fin","Estado recorrido","Archivo"]:
-        if c in df.columns:
-            df[c]=(
-                df[c].fillna("")
-                .astype(str)
-                .str.replace(r"\\s+", " ", regex=True)
-                .str.strip()
-            )
-    df["Turno"]=df["Turno"].str.upper()
+    df["Turno"]=df["Turno"].astype(str).str.upper()
     for c in ["Diferencia inicio","Diferencia fin"]:
         df[c]=pd.to_timedelta(df[c],errors="coerce").dt.total_seconds().fillna(0)
     df["DifIniSec"]=df["Diferencia inicio"];df["DifFinSec"]=df["Diferencia fin"]
@@ -996,8 +881,13 @@ class Handler(BaseHTTPRequestHandler):
 if __name__=="__main__":
     print("SISTEMA PRO V2.6 - TABLERO EJECUTIVO PROFESIONAL")
     if RENDER_MODE:
-        print("Modo Render: Excel y KML locales del repositorio")
-        print("Excel Render:", EXCEL_PATH)
+        print("Google Drive Excel ID:", DRIVE_EXCEL_ID)
+        sync_drive_excel(force=True)
+        print("Google Drive carpeta KML diurno:", DRIVE_DIURNO_FOLDER_ID)
+        print("Google Drive carpeta KML nocturno:", DRIVE_NOCTURNO_FOLDER_ID)
+        sync_drive_kml(force=True)
+        threading.Thread(target=drive_sync_loop, daemon=True).start()
+        threading.Thread(target=drive_kml_loop, daemon=True).start()
         threading.Thread(target=lambda: (time.sleep(2), preload_current_kml_cache()), daemon=True).start()
     print("Excel:",EXCEL_PATH)
     if not os.path.exists(EXCEL_PATH):
