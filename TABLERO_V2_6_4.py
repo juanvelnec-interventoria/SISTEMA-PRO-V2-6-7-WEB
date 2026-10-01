@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json, os, re, threading, time, webbrowser, zipfile, xml.etree.ElementTree as ET, html as htmlmod
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 import pandas as pd
 
 # ==========================================================
@@ -251,12 +251,26 @@ def read_kml_geojson(path):
         return {"type":"FeatureCollection","features":[],"file":path,"exists":True,"error":str(e),"size":os.path.getsize(path),"modified":time.strftime("%d/%m/%Y %H:%M:%S",time.localtime(os.path.getmtime(path)))}
 
 def monthly_kml(year_month):
+    # En Render NO devolvemos aquí los GeoJSON completos: pueden pesar 20-30 MB
+    # y hacer que /api/kml tarde o sea truncado por el proxy. Devolvemos solo
+    # la URL del archivo comprimido; el navegador lo descarga directamente.
     result={"month":year_month,"diurno":[],"nocturno":[]}
     for turno,key in [("DIURNO","diurno"),("NOCTURNO","nocturno")]:
         if RENDER_MODE:
-            for p in geojson_candidates(year_month,turno):
+            candidates=geojson_candidates(year_month,turno)
+            if candidates:
+                p=candidates[0]
+                gz=p + ".gz"
+                if os.path.exists(gz):
+                    result[key]={"type":"FeatureCollection","features":[],
+                                 "file":"/geojson/" + os.path.relpath(gz,GEOJSON_ROOT).replace(os.sep,"/"),
+                                 "exists":True,"compressed":True,"size":os.path.getsize(gz)}
+                    continue
                 if os.path.exists(p):
-                    result[key]=read_geojson_file(p); break
+                    result[key]={"type":"FeatureCollection","features":[],
+                                 "file":"/geojson/" + os.path.relpath(p,GEOJSON_ROOT).replace(os.sep,"/"),
+                                 "exists":True,"compressed":False,"size":os.path.getsize(p)}
+                    continue
         else:
             for p in kml_candidates(year_month,turno):
                 if os.path.exists(p):
@@ -668,8 +682,26 @@ function kml_candidates_text(month,turno){
 }
 async function loadKML(month){
  if(!month)return;
- try{let r=await fetch('/api/kml?month='+encodeURIComponent(month)+'&x='+Date.now()),j=await r.json();kmlCache[month]=j;drawMonthlyKML(month)}
- catch(e){$('kmlDStatus').textContent='KML diurno: error';$('kmlNStatus').textContent='KML nocturno: error'}
+ try{
+  let r=await fetch('/api/kml?month='+encodeURIComponent(month)+'&x='+Date.now(),{cache:'no-store'});
+  if(!r.ok)throw Error('HTTP '+r.status);
+  let meta=await r.json();
+  async function loadGeo(obj){
+   if(!obj||!obj.exists||!obj.file)return obj;
+   let gr=await fetch(obj.file+'?x='+Date.now(),{cache:'no-store'});
+   if(!gr.ok)throw Error('HTTP '+gr.status+' '+obj.file);
+   let gj=await gr.json();
+   return Object.assign({},obj,gj);
+  }
+  let parts=await Promise.all([loadGeo(meta.diurno),loadGeo(meta.nocturno)]);
+  meta.diurno=parts[0]; meta.nocturno=parts[1];
+  kmlCache[month]=meta; drawMonthlyKML(month);
+ }catch(e){
+  console.error('Error cargando recorridos:',e);
+  $('kmlDStatus').textContent='KML diurno: error';$('kmlNStatus').textContent='KML nocturno: error';
+  $('kmlDFile').innerHTML='<p class="bad">Error cargando el recorrido diurno: '+esc(e.message||e)+'</p>';
+  $('kmlNFile').innerHTML='<p class="bad">Error cargando el recorrido nocturno: '+esc(e.message||e)+'</p>';
+ }
 }
 function refreshMonthlyMap(){
  if(!mapDiurno||!mapNocturno)return;
@@ -809,6 +841,26 @@ class Handler(BaseHTTPRequestHandler):
         p=urlparse(self.path).path
         if p=="/":
             b=HTML.encode("utf-8");self.send_response(200);self.send_header("Content-Type","text/html; charset=utf-8");self.send_header("Content-Length",str(len(b)));self.end_headers();self.wfile.write(b);return
+        if p.startswith("/geojson/"):
+            try:
+                rel=unquote(p[len("/geojson/"):]).replace("\\","/")
+                if not rel or ".." in rel.split("/"):
+                    self.send_error(404); return
+                root=os.path.abspath(GEOJSON_ROOT)
+                target=os.path.abspath(os.path.join(root,rel))
+                if not (target==root or target.startswith(root+os.sep)) or not os.path.isfile(target):
+                    self.send_error(404); return
+                is_gz=target.lower().endswith(".gz")
+                ctype="application/json; charset=utf-8"
+                with open(target,"rb") as f:
+                    data=f.read()
+                self.send_response(200); self.send_header("Content-Type",ctype)
+                if is_gz:self.send_header("Content-Encoding","gzip"); self.send_header("Vary","Accept-Encoding")
+                self.send_header("Cache-Control","public, max-age=300")
+                self.send_header("Content-Length",str(len(data))); self.end_headers(); self.wfile.write(data)
+            except Exception as e:
+                self.send_error(500,str(e))
+            return
         if p=="/api/kml":
             try:
                 from urllib.parse import parse_qs
