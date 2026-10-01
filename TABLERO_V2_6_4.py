@@ -141,29 +141,34 @@ def _drive_folder_files(folder_id):
         return cached[1] if cached else {}
 
 def available_kml_months():
-    """Devuelve los meses detectados en las carpetas públicas de KML.
-    Se combina con los meses del Excel para que el selector histórico no dependa
-    de que exista una fila en RECORRIDOS.
-    """
-    months=set()
-    patterns=(
-        (DRIVE_DIURNO_FOLDER_ID, r"^REC_DIUR_(?:[A-Z]{3})(\d{4})\.(?:kml|kmz)$"),
-        (DRIVE_NOCTURNO_FOLDER_ID, r"^REC_NOCT_(?:[A-Z]{3})(\d{4})\.(?:kml|kmz)$"),
-    )
-    for folder_id,pat in patterns:
-        files=_drive_folder_files(folder_id)
-        for name in files:
-            m=re.match(pat,name,re.I)
+    """Meses disponibles en los KML publicados dentro del repositorio."""
+    months = set()
+
+    for folder_name, prefix in [
+        ("REC_DIURNO", "REC_DIUR"),
+        ("REC_NOCTURNO", "REC_NOCT"),
+    ]:
+        root = os.path.join(BASE_DIR, "KML", folder_name)
+
+        if not os.path.isdir(root):
+            continue
+
+        for filename in os.listdir(root):
+            m = re.match(
+                rf"^{prefix}_([A-Z]{{3}})(\d{{4}})\.(?:kml|kmz)$",
+                filename,
+                re.I
+            )
             if not m:
                 continue
-            mm=re.search(r"_([A-Z]{3})(\d{4})\.",name,re.I)
-            if not mm:
-                continue
-            abbr=mm.group(1).upper(); year=mm.group(2)
-            rev={v:k for k,v in MONTH_ABBR.items()}
-            month=rev.get(abbr)
+
+            abbr = m.group(1).upper()
+            year = m.group(2)
+            month = MONTH_ABBR.get(abbr)
+
             if month:
                 months.add(f"{year}-{int(month):02d}")
+
     return sorted(months)
 
 
@@ -769,8 +774,8 @@ def drive_sync_loop():
         time.sleep(max(10, DRIVE_SYNC_SECONDS))
 
 def read_excel():
-    if RENDER_MODE:
-        sync_drive_excel()
+    # En Render el Excel se publica directamente en GitHub junto con el tablero.
+    # NO usar Google Drive.
     if not os.path.exists(EXCEL_PATH):
         raise FileNotFoundError(EXCEL_PATH)
     try:
@@ -823,12 +828,20 @@ class Handler(BaseHTTPRequestHandler):
                 qs=parse_qs(urlparse(self.path).query)
                 month=qs.get("month",[""])[0]
                 b=json.dumps(monthly_kml(month),ensure_ascii=False,default=str).encode("utf-8")
-                self.send_response(200);self.send_header("Content-Type","application/json; charset=utf-8")
-                self.send_header("Cache-Control","no-store");self.end_headers();self.wfile.write(b)
+                self.send_response(200)
+                self.send_header("Content-Type","application/json; charset=utf-8")
+                self.send_header("Cache-Control","no-store")
+                self.send_header("Content-Length", str(len(b)))
+                self.end_headers()
+                self.wfile.write(b)
             except Exception as e:
                 b=json.dumps({"error":str(e)},ensure_ascii=False).encode("utf-8")
-                self.send_response(500);self.send_header("Content-Type","application/json; charset=utf-8")
-                self.end_headers();self.wfile.write(b)
+                self.send_response(500)
+                self.send_header("Content-Type","application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(b)))
+                self.send_header("Cache-Control","no-store")
+                self.end_headers()
+                self.wfile.write(b)
             return
         if p=="/api/data":
             try:
@@ -837,17 +850,26 @@ class Handler(BaseHTTPRequestHandler):
                 kml_months=available_kml_months() if RENDER_MODE else []
                 all_months=sorted(set(excel_months)|set(kml_months))
                 b=json.dumps({"stamp":stamp(),"updated":time.strftime("%d/%m/%Y %H:%M:%S"),"rows":rows,"kml_months":all_months},ensure_ascii=False,default=str).encode("utf-8")
-                self.send_response(200);self.send_header("Content-Type","application/json; charset=utf-8");self.send_header("Cache-Control","no-store");self.end_headers();self.wfile.write(b)
+                self.send_response(200)
+                self.send_header("Content-Type","application/json; charset=utf-8")
+                self.send_header("Cache-Control","no-store")
+                self.send_header("Content-Length", str(len(b)))
+                self.end_headers()
+                self.wfile.write(b)
             except Exception as e:
-                b=json.dumps({"error":str(e)},ensure_ascii=False).encode("utf-8");self.send_response(500);self.send_header("Content-Type","application/json; charset=utf-8");self.end_headers();self.wfile.write(b)
+                b=json.dumps({"error":str(e)},ensure_ascii=False).encode("utf-8")
+                self.send_response(500)
+                self.send_header("Content-Type","application/json; charset=utf-8")
+                self.send_header("Content-Length", str(len(b)))
+                self.send_header("Cache-Control","no-store")
+                self.end_headers()
+                self.wfile.write(b)
 
 if __name__=="__main__":
     print("SISTEMA PRO V2.6 - TABLERO EJECUTIVO PROFESIONAL")
     if RENDER_MODE:
-        print("Google Drive Excel ID:", DRIVE_EXCEL_ID)
-        sync_drive_excel(force=True)
-        # Los KML web se leen directamente desde KML/ del repositorio.
-        # No se usa Google Drive para los recorridos.
+        print("Fuente Render: Excel y KML publicados en el repositorio.")
+        print("Google Drive: NO UTILIZADO.")
     print("Excel:",EXCEL_PATH)
     if not os.path.exists(EXCEL_PATH):
         print("ADVERTENCIA: no se encontro el Excel en:", EXCEL_PATH)
