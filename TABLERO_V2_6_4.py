@@ -45,16 +45,33 @@ def month_folder(year_month):
         return None
 
 def available_kml_months():
-    """Detecta meses disponibles en los KML/KMZ locales del proyecto.
-    No consulta Google Drive.
+    """Detecta meses disponibles en KML/KMZ.
+
+    En Render los KML publicados viven dentro del propio repositorio:
+        KML/REC_DIURNO/
+        KML/REC_NOCTURNO/
+
+    En local se conservan además las rutas originales de Recorrido_Diurno
+    y Recorrido_Nocturno. No se utiliza Google Drive.
     """
     months=set()
-    roots=(DIURNO_ROOT, NOCTURNO_ROOT)
     pat=re.compile(r"REC_(?:DIUR|NOCT)_([A-Z]{3})(\d{4})\.(?:kml|kmz)$", re.I)
     rev={v:k for k,v in MONTH_ABBR.items()}
+
+    roots=[]
+    if RENDER_MODE:
+        roots.extend([
+            os.path.join(BASE_DIR, "KML", "REC_DIURNO"),
+            os.path.join(BASE_DIR, "KML", "REC_NOCTURNO"),
+        ])
+    roots.extend((DIURNO_ROOT, NOCTURNO_ROOT))
+
+    seen=set()
     for root in roots:
-        if not os.path.isdir(root):
+        root=os.path.abspath(root)
+        if root in seen or not os.path.isdir(root):
             continue
+        seen.add(root)
         for dirpath,_,files in os.walk(root):
             for name in files:
                 m=pat.match(name)
@@ -67,27 +84,63 @@ def available_kml_months():
 
 
 def kml_candidates(year_month, turno):
+    """Devuelve candidatos para el KML mensual.
+
+    PRIORIDAD EN RENDER:
+        BASE_DIR/KML/REC_DIURNO/REC_DIUR_MESANO.kml
+        BASE_DIR/KML/REC_NOCTURNO/REC_NOCT_MESANO.kml
+
+    Es decir, lee directamente los KML que el actualizador publica en GitHub
+    y que Render recibe junto con el repositorio.
+
+    En local se mantienen las rutas originales como respaldo.
+    """
     folder = month_folder(year_month)
     if not folder:
         return []
+
     y=str(year_month).split("-")[0]
-    if str(turno).upper()=="DIURNO":
-        root = os.path.join(DIURNO_ROOT, y, folder)
+    turno_u=str(turno).upper()
+
+    if turno_u=="DIURNO":
         names=[f"REC_DIUR_{folder}.kml",f"REC_DIUR_{folder}.kmz"]
-    elif str(turno).upper()=="NOCTURNO":
-        root = os.path.join(NOCTURNO_ROOT, folder)
+        published_root=os.path.join(BASE_DIR, "KML", "REC_DIURNO")
+        local_root=os.path.join(DIURNO_ROOT, y, folder)
+        search_root=DIURNO_ROOT
+    elif turno_u=="NOCTURNO":
         names=[f"REC_NOCT_{folder}.kml",f"REC_NOCT_{folder}.kmz"]
+        published_root=os.path.join(BASE_DIR, "KML", "REC_NOCTURNO")
+        local_root=os.path.join(NOCTURNO_ROOT, folder)
+        search_root=NOCTURNO_ROOT
     else:
         return []
-    out=[os.path.join(root,n) for n in names]
-    search_root=DIURNO_ROOT if str(turno).upper()=="DIURNO" else NOCTURNO_ROOT
+
+    out=[]
+
+    # 1) En Render, primero buscar el KML publicado junto al código.
+    #    También se deja primero aunque el archivo se ejecute en un entorno
+    #    con RENDER=true y la ruta exista solo después del despliegue.
+    for name in names:
+        p=os.path.join(published_root, name)
+        if p not in out:
+            out.append(p)
+
+    # 2) Rutas locales originales.
+    for name in names:
+        p=os.path.join(local_root, name)
+        if p not in out:
+            out.append(p)
+
+    # 3) Respaldo: búsqueda recursiva de los nombres exactos.
     if os.path.isdir(search_root):
         targets={n.lower() for n in names}
         for dirpath,_,files in os.walk(search_root):
             for f in files:
                 if f.lower() in targets:
                     p=os.path.join(dirpath,f)
-                    if p not in out: out.append(p)
+                    if p not in out:
+                        out.append(p)
+
     return out
 
 def _strip(tag):
